@@ -12,6 +12,7 @@ class RF:
         self.RFIndex = ['总推进力', '刀盘功率', '刀盘扭矩', '推进速度', '刀盘速度给定', '刀盘转速']
         self.result = {}
         self.resultList = []
+        #处理原始数据的缺失和误差
         self.dataList = AllTxtHandle(self.Address, self.RFIndex)
 
     def RFData(self):
@@ -29,6 +30,7 @@ class RF:
                     self.calculateStable(data['刀盘转速'].values, number + 31, '稳定段刀盘转速均值')
                     self.calculateStable(data['推进速度'].values, number + 31, '稳定段推进速度均值')
 
+                    #将单个循环段数据放入数据列表中
                     self.resultList.append(self.result)
 
                     number = number + 31
