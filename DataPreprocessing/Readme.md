@@ -1,6 +1,11 @@
+##依赖与python版本 
+python 3.7.7  
+pandas 1.0.3  
+numpy 1.16.2
+
 ##RF数据预处理使用方法
 1.使用之前在TBMModel文件夹下建立名为TBMData的文件夹，将解压后的txt数据文件放入TBMData文件夹中。  
-2.导入DataPreprocess文件。  
+2.导入DataPreprocess文件和各个依赖。  
 3.实例化RF类  
 4.调用RF类中的RFData函数（无参数）  
 5.输出结果实例：  
