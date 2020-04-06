@@ -100,7 +100,7 @@ class AdaCost:
         # AdaCostIndex为adacost需要使用数据的列索引，即参数名称，额外加入刀盘扭矩判断上升段与稳定段
         self.AdaCostIndex = ['桩号', '刀盘运行时间', '撑靴压力', '刀盘扭矩', '刀盘转速', '撑靴泵压力', '左撑靴俯仰角', '控制泵压力',
                              '右撑靴俯仰角', '左撑靴滚动角', '左撑靴油缸行程检测', '右撑靴滚动角',
-                             '右撑靴油缸行程检测']  # ,'刀盘转速电位器值设定值
+                             '右撑靴油缸行程检测']#, '刀盘转速电位器值设定值'
         # Address为存放txt文件夹相对于DataPreprocessing.py的路径
         self.Address = txtAddress
 
@@ -113,7 +113,6 @@ class AdaCost:
         self.rockGrade = self.rockForm['修正围岩等级']
 
     def adaCostData(self):
-        print(self.dataList)
         for data in self.dataList:
             torque = data['刀盘扭矩'].values
             number = 0
@@ -151,7 +150,7 @@ class AdaCost:
                         else:
                             end = end + 1
                     self.resultList.append(result)
-                    print(result)
+                    # print(result)
                     number = end + 1
                 else:
                     number = number + 1
@@ -164,7 +163,6 @@ class AdaCost:
         return df
 
     def calRockGrade(self, stakes):
-        print(stakes)
         rockGradeList = []
         rockGrade = -1
         for stake in stakes:
