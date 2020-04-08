@@ -1,3 +1,4 @@
+import matplotlib
 import pandas as pd
 import os
 import numpy as np
@@ -6,13 +7,15 @@ import matplotlib.pyplot as plt
 
 # 相对路径均为相对DataPreprocessing.py的路径
 # 存放txt数据的文件夹
-txtAddress = '../TBMData/txtData'
+txtAddress = '../../txtData'
 # 存放预处理数据的文件夹
-preDataAddress = '../TBMData/TBMPreproData'
+preDataAddress = '../../TBMPreproData'
 # 存放zip压缩包的文件夹
-zipAddress = '../TBMData/zip'
+zipAddress = '../../Data'
 # 围岩等级表地址
 rockFormAddress = '../TBMData/围岩等级信息统计表-现场工程师统计.xlsx'
+# 存放可视化图片
+picDirAddress = '../../DataPic'
 
 
 class RF:
@@ -29,12 +32,39 @@ class RF:
         self.RFStableIndex = ['刀盘转速', '推进速度', '刀盘扭矩', '总推进力']
         self.resultList = []
         # 处理原始数据的缺失和误差
-        self.dataList = AllTxtHandle(self.Address, self.RFIndex)
+        self.dataDict = AllTxtHandle(self.Address, self.RFIndex)
 
     def RFData(self):
-        for data in self.dataList:
+        for date in self.dataDict:
+            data = self.dataDict[date]
             torque = data['刀盘扭矩'].values
+            speed = data['推进速度'].values
+            f = data['总推进力'].values
 
+            # plot根据列表绘制出有意义的图形
+            plt.plot(torque, color='blue', label='T')
+            plt.plot(f, color='green', label='F')
+            plt.plot(speed, color='red', label='S')
+            plt.legend()
+            # 设置图标标题
+            plt.title(date, fontsize=24)
+            # 设置坐标轴标签
+            plt.xlabel("time/s")
+            plt.ylabel("")
+            # plt.xlim(23000, 24500)
+            # 设置刻度标记的大小
+            plt.tick_params(axis='both', labelsize=14)
+            # 转绝对地址
+            picDirPath = transAddress(picDirAddress)
+            # 不存在则创建
+            if not os.path.exists(picDirPath):
+                os.makedirs(picDirPath)
+            # 预处理文件路径
+            picFilePath = os.path.join(picDirPath, date[0:-4] + '.png')
+            #生成图片
+            plt.savefig(picFilePath)
+            # 打开matplotlib查看器，并显示绘制图形
+            plt.show()
 
             # print(np.mean(torque))
             # print(len(torque) - 31)
@@ -75,13 +105,13 @@ class RF:
                     # 将单个循环段数据放入数据列表中
                     number = end + 1
                     self.resultList.append(result)
-                    print(result)
+                    # print(result)
 
                 else:
                     number = number + 1
-        print(self.resultList)
+        # print(self.resultList)
         df = pd.DataFrame(self.resultList)
-        print(df)
+        # print(df)
         # 生成预处理数文件
         createPreproData(df, self.dataPath, self.DataFileName)
 
@@ -113,7 +143,7 @@ class AdaCost:
         # Address为存放txt文件夹相对于DataPreprocessing.py的路径
         self.Address = txtAddress
 
-        self.dataList = AllTxtHandle(self.Address, self.AdaCostIndex)
+        self.dataDict = AllTxtHandle(self.Address, self.AdaCostIndex)
         self.resultList = []
         # 围岩映射表处理
         self.rockForm = pd.read_excel(transAddress(rockFormAddress))
@@ -122,12 +152,14 @@ class AdaCost:
         self.rockGrade = self.rockForm['修正围岩等级']
 
     def adaCostData(self):
-        for data in self.dataList:
+        for date in self.dataDict:
+            data = self.dataDict[date]
             torque = data['刀盘扭矩'].values
             number = 0
             while number < len(torque) - 31:
                 # 判断上升段起点
-                if torque[number] == 0 and torque[number + 1] > 0 and torque[number + 30] > 0 \
+                if torque[number] == torque[number + 1] and torque[number] != 0 \
+                        and torque[number + 2] - torque[number + 1] > 2 and torque[number + 30] > 0 \
                         and torque[number + 2] - torque[number + 1] > 0:
                     # 判断稳定段起点
                     number = number + 31
@@ -189,7 +221,7 @@ class AdaCost:
             else:
                 rockGradeList.append('小于所有结束范围')
 
-        print(rockGradeList)
+        # print(rockGradeList)
         try:
             # bincount（）：统计非负整数的个数，不能统计浮点数
             counts = np.bincount(rockGradeList)
@@ -228,16 +260,15 @@ def createPreproData(df, address, name):
 def AllTxtHandle(dirAddress, index):
     # 因为python的相对路径默认为相对运行文件的路径，所以转为绝对路径
     address = transAddress(dirAddress)
-    dataList = []
+    dataDict = {}
     # 便利文件夹下所有文件
     for root, dirs, files in os.walk(address):
         for file in files:
             path = os.path.join(root, file)
             # 处理单个txt文件
-            oneTxtData = oneTxtHandle(path, index)
-            dataList.append(oneTxtData)
+            dataDict[file] = oneTxtHandle(path, index)
 
-    return dataList
+    return dataDict
 
 
 # 调用该函数读取单个txt文件数据，oneDataAddress为相对DataPreprocessing.py的路径，index为需要使用数据的列索引，即参数名称
