@@ -2,7 +2,7 @@ import pandas as pd
 import os
 import numpy as np
 import zipfile
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 # 相对路径均为相对DataPreprocessing.py的路径
 # 存放txt数据的文件夹
