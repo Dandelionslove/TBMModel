@@ -8,7 +8,7 @@ xlrd 1.2.0
 1.使用之前在TBMModel文件夹下建立名为TBMData的文件夹，在TBMData文件夹下建立名为zip的文件夹，将zip压缩包放入该zip文件夹中。  
 2.安装pandas、numpy和xlrd。
 3.运行/TBMModel/DataPreprocessing/RFPredata.py 文件  
-4.预处理csv文件为/TBMModel/TBMData/TBMPreproData/RFPreData.csv  
+4.预处理csv文件为/TBMModel/TBMDrivingParameters/RF_CART/data/train.csv 
 5.txt数据目录为/TBMModel/TBMData/txtData
 
 ##adaCost数据预处理使用方法

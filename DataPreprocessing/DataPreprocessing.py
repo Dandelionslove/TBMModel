@@ -2,7 +2,7 @@ import pandas as pd
 import os
 import numpy as np
 import zipfile
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
 # 相对路径均为相对DataPreprocessing.py的路径
 # 存放txt数据的文件夹
@@ -17,14 +17,16 @@ rockFormAddress = '../TBMData/围岩等级信息统计表-现场工程师统计.
 
 class RF:
     def __init__(self):
+        #存放预处理数据地址
+        self.dataPath = '../TBMDrivingParameters/RF_CART/data'
         # 预处理数据文件名
-        self.DataFileName = 'RFPreData.csv'
+        self.DataFileName = 'train.csv'
         # Address为存放txt文件夹相对于DataPreprocessing.py的路径
         self.Address = txtAddress
         # RFIndex为RF需要使用数据的列索引，即参数名称
         self.RFIndex = ['总推进力', '刀盘功率', '刀盘扭矩', '推进速度', '刀盘速度给定', '刀盘转速']
         # RFStableIndex为稳定段所需数据的列索引
-        self.RFStableIndex = ['刀盘扭矩', '总推进力', '刀盘转速', '推进速度']
+        self.RFStableIndex = ['刀盘转速', '推进速度', '刀盘扭矩', '总推进力']
         self.resultList = []
         # 处理原始数据的缺失和误差
         self.dataList = AllTxtHandle(self.Address, self.RFIndex)
@@ -32,13 +34,18 @@ class RF:
     def RFData(self):
         for data in self.dataList:
             torque = data['刀盘扭矩'].values
+
+
             # print(np.mean(torque))
             # print(len(torque) - 31)
             number = 0
             while number < len(torque) - 31:
                 # 判断是否为上升段，并选取前30个数据
-                if torque[number] == 0 and torque[number + 1] > 0 and torque[number + 30] > 0 \
+                if torque[number] == torque[number + 1] and torque[number] != 0 \
+                        and torque[number + 2] - torque[number + 1] > 2 and torque[number + 30] > 0 \
                         and torque[number + 2] - torque[number + 1] > 0:
+                    #上升段起点为number + 2
+                    number = number + 2
                     result = self.calculateRise(data, number)
 
                     # 判断稳定段起点
@@ -76,7 +83,9 @@ class RF:
         df = pd.DataFrame(self.resultList)
         print(df)
         # 生成预处理数文件
-        createPreproData(df, self.DataFileName)
+        createPreproData(df, self.dataPath, self.DataFileName)
+
+
         return df
 
     # 判断上升段，并选取上升段数据
@@ -159,7 +168,7 @@ class AdaCost:
         df = pd.DataFrame(self.resultList)
         print(df)
         # 生成预处理数据文件
-        createPreproData(df, self.DataFileName)
+        createPreproData(df, preDataAddress, self.DataFileName)
         return df
 
     def calRockGrade(self, stakes):
@@ -201,9 +210,9 @@ def calculateStable(origin, rowDataValue, end):
 
 
 # 生成预处理数据文件
-def createPreproData(df, name):
+def createPreproData(df, address, name):
     # 存放预处理结果的文件夹
-    resultDirPath = transAddress(preDataAddress)
+    resultDirPath = transAddress(address)
     # 不存在则创建
     if not os.path.exists(resultDirPath):
         os.makedirs(resultDirPath)
