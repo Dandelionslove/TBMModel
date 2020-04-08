@@ -3,7 +3,24 @@ import numpy as np
 
 
 class AdaCostClassifier(AdaBoostClassifier):
-    # 改写权重更新规则，并加入代价矩阵
+    # Add a private member __cost_matrix
+    def __init__(self,
+                 base_estimator=None,
+                 n_estimators=50,
+                 learning_rate=1.,
+                 algorithm='SAMME.R',
+                 random_state=None,
+                 cost_matrix=None):
+
+        super().__init__(
+            base_estimator=base_estimator,
+            n_estimators=n_estimators,
+            learning_rate=learning_rate,
+            random_state=random_state)
+
+        self.algorithm = algorithm
+        self.__cost_matrix = cost_matrix
+
     def _boost_discrete(self, iboost, X, y, sample_weight, random_state):
         """Implement a single boost using the SAMME discrete algorithm."""
         estimator = self._make_estimator(random_state=random_state)
@@ -70,44 +87,43 @@ class AdaCostClassifier(AdaBoostClassifier):
 
     #  新定义的代价调整函数
     def _cost(self, y, y_hat):
-        # print(y)
-        # print(y_hat)
         res = []
         for i in zip(y, y_hat):
-            if i[0] == i[1]:
-                res.append(0)   # 正确分类
-            elif i[0] == 2: # 真实II级
-                if i[1] == 3: res.append(4)
-                elif i[1] == 4: res.append(2)
-                elif i[1] == 5: res.append(1)
-                else:
-                    res.append(1)
-
-            elif i[0] == 3:  # 真实III级
-                if i[1] == 2:
-                    res.append(1)
-                elif i[1] == 4:
-                    res.append(2)
-                elif i[1] == 5:
-                    res.append(1)
-                else:
-                    res.append(1)
-
-            elif i[0] == 4: # 真实IV级
-                if i[1] == 2: res.append(2)
-                elif i[1] == 3: res.append(4)
-                elif i[1] == 5: res.append(1)
-                else:
-                    res.append(1)
-
-            elif i[0] == 5: # 真实V级
-                if i[1] == 2: res.append(2)
-                elif i[1] == 3: res.append(6)
-                elif i[1] == 4: res.append(4)
-                else:
-                    res.append(1)
-            else:
-                res.append(1)
-        # print(res)
+            res.append(self.__cost_matrix[i[1]][i[0]])
+        #     if i[0] == i[1]:
+        #         res.append(0)   # 正确分类
+        #     elif i[0] == 2: # 真实II级
+        #         if i[1] == 3: res.append(4)
+        #         elif i[1] == 4: res.append(2)
+        #         elif i[1] == 5: res.append(1)
+        #         else:
+        #             res.append(1)
+        #
+        #     elif i[0] == 3:  # 真实III级
+        #         if i[1] == 2:
+        #             res.append(1)
+        #         elif i[1] == 4:
+        #             res.append(2)
+        #         elif i[1] == 5:
+        #             res.append(1)
+        #         else:
+        #             res.append(1)
+        #
+        #     elif i[0] == 4: # 真实IV级
+        #         if i[1] == 2: res.append(2)
+        #         elif i[1] == 3: res.append(4)
+        #         elif i[1] == 5: res.append(1)
+        #         else:
+        #             res.append(1)
+        #
+        #     elif i[0] == 5: # 真实V级
+        #         if i[1] == 2: res.append(2)
+        #         elif i[1] == 3: res.append(6)
+        #         elif i[1] == 4: res.append(4)
+        #         else:
+        #             res.append(1)
+        #     else:
+        #         res.append(1)
+        # # print(res)
         return np.array(res)
 
