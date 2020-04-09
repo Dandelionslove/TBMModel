@@ -64,7 +64,7 @@ class RF:
             #生成图片
             plt.savefig(picFilePath)
             # 打开matplotlib查看器，并显示绘制图形
-            plt.show()
+            # plt.show()
 
             # print(np.mean(torque))
             # print(len(torque) - 31)
@@ -104,7 +104,16 @@ class RF:
                             end = end + 1
                     # 将单个循环段数据放入数据列表中
                     number = end + 1
-                    self.resultList.append(result)
+
+                    flag = 1
+
+                    for i in result:
+                        if result[i] == 0:
+                            flag = 0
+                            break
+
+                    if flag:
+                        self.resultList.append(result)
                     # print(result)
 
                 else:
