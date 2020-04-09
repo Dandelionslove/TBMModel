@@ -63,6 +63,8 @@ class RF:
             picFilePath = os.path.join(picDirPath, date[0:-4] + '.png')
             #生成图片
             plt.savefig(picFilePath)
+            #清空缓存
+            plt.close()
             # 打开matplotlib查看器，并显示绘制图形
             # plt.show()
 
