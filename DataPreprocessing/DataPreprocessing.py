@@ -21,9 +21,9 @@ picDirAddress = '../../DataPic'
 class RF:
     def __init__(self):
         #存放预处理数据地址
-        self.dataPath = '../TBMDrivingParameters/RF_CART/data'
+        self.dataPath = preDataAddress#'../TBMDrivingParameters/RF_CART/data'
         # 预处理数据文件名
-        self.DataFileName = 'train.csv'
+        self.DataFileName = 'allIndexRF.csv'#'train.csv'
         # Address为存放txt文件夹相对于DataPreprocessing.py的路径
         self.Address = txtAddress
         # RFIndex为RF需要使用数据的列索引，即参数名称
@@ -37,6 +37,7 @@ class RF:
     def RFData(self):
         for date in self.dataDict:
             data = self.dataDict[date]
+            self.RFIndex = list(data.keys())
             torque = getEMA(data['刀盘扭矩'].values)
             speed = getEMA(data['推进速度'].values)
             f = getEMA(data['总推进力'].values)
@@ -100,10 +101,10 @@ class RF:
 
                 flag = 1
 
-                for x in result:
-                    if result[x] == 0:
-                        flag = 0
-                        break
+                # for x in result:
+                #     if result[x] == 0:
+                #         flag = 0
+                #         break
 
                 if np.mean(torque[stableList[0]:stableList[1]]) < 1000:
                     flag = 0
@@ -168,12 +169,12 @@ class RF:
 
         # print(self.resultList)
         df = pd.DataFrame(self.resultList)
-        # print(df)
+        print(df)
         # 生成预处理数文件
         createPreproData(df, self.dataPath, self.DataFileName)
 
 
-        return df
+        # return df
 
     # 判断上升段，并选取上升段数据
     def calculateRise(self, data, number):
@@ -184,7 +185,8 @@ class RF:
             mean = info.mean()
             var = info.var()
             result[name + '均值'] = mean
-            result[name + '方差'] = var
+            if name in ['总推进力', '刀盘功率', '刀盘扭矩', '推进速度', '刀盘速度给定', '刀盘转速']:
+                result[name + '方差'] = var
 
         return result
 
@@ -192,7 +194,7 @@ class RF:
 class AdaCost:
     def __init__(self):
         # 预处理数据文件名
-        self.DataFileName = 'adaCostPreData.csv'
+        self.DataFileName = 'allIndexAdaCost.csv'#'adaCostPreData.csv'
         # AdaCostIndex为adacost需要使用数据的列索引，即参数名称，额外加入刀盘扭矩判断上升段与稳定段
         self.AdaCostIndex = ['桩号', '刀盘运行时间', '撑靴压力', '刀盘扭矩', '刀盘转速', '撑靴泵压力', '左撑靴俯仰角', '控制泵压力',
                              '右撑靴俯仰角', '左撑靴滚动角', '左撑靴油缸行程检测', '右撑靴滚动角',
@@ -211,6 +213,7 @@ class AdaCost:
     def adaCostData(self):
         for date in self.dataDict:
             data = self.dataDict[date]
+            self.AdaCostIndex = list(data.keys())
             torque = getEMA(data['刀盘扭矩'].values)
             i = 0
             while i < len(torque) - 101:
@@ -236,19 +239,19 @@ class AdaCost:
                 stableList = stable(riseNum + 31, end, torque)
                 result = {}
                 for name in self.AdaCostIndex:
-                    if name != '刀盘扭矩' and name != '桩号':
-                        result[name + '均值'] = calculateStable(stableList[0], getEMA(data[name].values), stableList[1])
-                        result['围岩等级'] = self.calRockGrade(data['桩号'].values[stableList[0]: stableList[1]])
+                    if name != '桩号':#and name != '刀盘扭矩':
+                        result[name + '均值'] = calculateStable(stableList[0], data[name].values, stableList[1])#getEMA()
+                result['围岩等级'] = self.calRockGrade(data['桩号'].values[stableList[0]: stableList[1]])
 
                 i = end
                 i = i + 1
 
                 flag = 1
 
-                for x in result:
-                    if result[x] == 0:
-                        flag = 0
-                        break
+                # for x in result:
+                #     if result[x] == 0:
+                #         flag = 0
+                #         break
 
                 if np.mean(torque[stableList[0]:stableList[1]]) < 1000:
                     flag = 0
@@ -258,10 +261,11 @@ class AdaCost:
 
         # print(self.resultList)
         df = pd.DataFrame(self.resultList)
-        print(df)
+        # print(df)
         # 生成预处理数据文件
         createPreproData(df, preDataAddress, self.DataFileName)
-        return df
+
+        # return df
 
     def calRockGrade(self, stakes):
         rockGradeList = []
@@ -338,13 +342,21 @@ def oneTxtHandle(oneDataAddress, index):
     # 读入数据
     basicData = pd.read_csv(address, sep='\t', index_col=False)
     # 选取需要的列组成DataFrame
+    # index = list(basicData.keys())
+    # for a in index:
+    #     if len(basicData[a].values):
+    #         index.remove(a)
+    # frame = pd.DataFrame(basicData, columns=index)
+    basicData = basicData.dropna(axis=1, how='all')
+    index = list(basicData.keys())[2:]
     frame = pd.DataFrame(basicData, columns=index)
+    #frame = pd.DataFrame(basicData, columns=index)
     # 删除缺失行：当行中有任意一个值为缺失时，删除行
     # print(frame)
     data_del_lack_row = frame.dropna()
     # 处理误差
     # print(data_del_lack_row)
-    oneTxtData = errorHandle(data_del_lack_row, index)
+    oneTxtData = data_del_lack_row#errorHandle(data_del_lack_row, index)
     return oneTxtData
 
 
