@@ -37,89 +37,135 @@ class RF:
     def RFData(self):
         for date in self.dataDict:
             data = self.dataDict[date]
-            torque = data['刀盘扭矩'].values
-            speed = data['推进速度'].values
-            f = data['总推进力'].values
-
+            torque = getEMA(data['刀盘扭矩'].values)
+            speed = getEMA(data['推进速度'].values)
+            f = getEMA(data['总推进力'].values)
+            result = {}
+            stableList = []
+            i = 0
             # plot根据列表绘制出有意义的图形
-            plt.plot(torque, color='blue', label='T')
-            plt.plot(f, color='green', label='F')
-            plt.plot(speed, color='red', label='S')
-            plt.legend()
-            # 设置图标标题
-            plt.title(date, fontsize=24)
-            # 设置坐标轴标签
-            plt.xlabel("time/s")
-            plt.ylabel("")
-            # plt.xlim(23000, 24500)
-            # 设置刻度标记的大小
-            plt.tick_params(axis='both', labelsize=14)
-            # 转绝对地址
-            picDirPath = transAddress(picDirAddress)
-            # 不存在则创建
-            if not os.path.exists(picDirPath):
-                os.makedirs(picDirPath)
-            # 预处理文件路径
-            picFilePath = os.path.join(picDirPath, date[0:-4] + '.png')
-            #生成图片
-            plt.savefig(picFilePath)
-            #清空缓存
-            plt.close()
-            # 打开matplotlib查看器，并显示绘制图形
-            # plt.show()
+            # plt.plot(torque, color='blue', label='T')
+            # plt.plot(f, color='green', label='T')
+            # plt.plot(speed, color='red', label='T')
+            # # 设置图标标题
+            # plt.legend()
+            # plt.title(date, fontsize=24)
+            # # 设置坐标轴标签
+            # plt.xlabel("time/s")
+            # plt.ylabel("")
+            # # 设置刻度标记的大小
+            # plt.tick_params(axis='both', labelsize=14)
+            # # 转绝对地址
+            # picDirPath = transAddress(picDirAddress)
+            # # 不存在则创建
+            # if not os.path.exists(picDirPath):
+            #     os.makedirs(picDirPath)
+            #
+            # picName = date[10:-4] + '.png'
+            # print(picName)
+            # # 预处理文件路径
+            # picFilePath = os.path.join(picDirPath, picName)
+            # # 生成图片
+            # plt.savefig(picFilePath)
+            # # 清空缓存
+            # plt.close()
+            while i < len(torque) - 101:
 
-            # print(np.mean(torque))
-            # print(len(torque) - 31)
-            number = 0
-            while number < len(torque) - 31:
-                # 判断是否为上升段，并选取前30个数据
-                if torque[number] == torque[number + 1] and torque[number] != 0 \
-                        and torque[number + 2] - torque[number + 1] > 2 and torque[number + 30] > 0 \
-                        and torque[number + 2] - torque[number + 1] > 0:
-                    #上升段起点为number + 2
-                    number = number + 2
-                    result = self.calculateRise(data, number)
-
-                    # 判断稳定段起点
-                    number = number + 31
-                    if number < len(torque) - 1:
-                        while torque[number + 1] - torque[number] > 0:
-                            if number + 1 == len(torque):
-                                break
-                            number = number + 1
-
-                    stableData = []
-                    end = number
-                    # 通过刀盘扭矩列表方差大于5时， 判断稳定段终点， 并选取稳定段数据
-                    while end < len(torque):
-                        stableData.append(torque[end])
-                        if np.var(stableData) > 5:
-                            end = end - 1
-                            for index in self.RFStableIndex:
-                                result['稳定段' + index + '均值'] = calculateStable(number, data[index].values, end)
-                            break
-                        elif end + 1 == len(torque):
-                            for index in self.RFStableIndex:
-                                result['稳定段' + index + '均值'] = calculateStable(number, data[index].values, end)
-                            break
-                        else:
-                            end = end + 1
-                    # 将单个循环段数据放入数据列表中
-                    number = end + 1
-
-                    flag = 1
-
-                    for i in result:
-                        if result[i] == 0:
-                            flag = 0
-                            break
-
-                    if flag:
-                        self.resultList.append(result)
-                    # print(result)
-
-                else:
+                origin = i
+                while origin < len(torque) - 100:
+                    if torque[origin] > 100:
+                        break
+                    origin = origin + 1
+                number = origin
+                n = 0
+                while number < len(torque):
+                    if torque[number] < 100:
+                        n = n + 1
+                    if n > 50:
+                        break
                     number = number + 1
+                end = number
+                if np.mean(torque[origin:end]) < 100:
+                    i = end + 1
+                    continue
+                riseNum = rise(origin, end, torque)
+                result = self.calculateRise(data, riseNum)
+
+                stableList = stable(riseNum + 31, end, torque)
+                for index in self.RFStableIndex:
+                    result['稳定段' + index + '均值'] = calculateStable(stableList[0], getEMA(data[index].values), stableList[1])
+
+                i = end
+                i = i + 1
+
+                flag = 1
+
+                for x in result:
+                    if result[x] == 0:
+                        flag = 0
+                        break
+
+                if np.mean(torque[stableList[0]:stableList[1]]) < 1000:
+                    flag = 0
+
+
+                if flag == 1:
+                    self.resultList.append(result)
+                    # # plot根据列表绘制出有意义的图形
+                    # plt.plot(torque[riseNum - 50:riseNum + 80], color='blue', label='T')
+                    # plt.plot(f[riseNum - 50:riseNum + 80], color='green', label='T')
+                    # plt.plot(speed[riseNum - 50:riseNum + 80], color='red', label='T')
+                    # plt.legend()
+                    # # 设置图标标题
+                    # plt.title(date, fontsize=24)
+                    # # 设置坐标轴标签
+                    # plt.xlabel("time/s")
+                    # plt.ylabel("")
+                    # # 设置刻度标记的大小
+                    # plt.tick_params(axis='both', labelsize=14)
+                    # # 转绝对地址
+                    # picDirPath = transAddress(picDirAddress)
+                    # # 不存在则创建
+                    # if not os.path.exists(picDirPath):
+                    #     os.makedirs(picDirPath)
+                    #
+                    # picName = date[10:-4] + '上升段' + str(riseNum) + '~' + str(riseNum + 30) + '.png'
+                    # print(picName)
+                    # # 预处理文件路径
+                    # picFilePath = os.path.join(picDirPath, picName)
+                    # # 生成图片
+                    # plt.savefig(picFilePath)
+                    # # 清空缓存
+                    # plt.close()
+                    #
+                    # # plot根据列表绘制出有意义的图形
+                    # plt.plot(torque[stableList[0]:stableList[1]], color='blue', label='T')
+                    # plt.plot(f[stableList[0]:stableList[1]], color='green', label='T')
+                    # plt.plot(speed[stableList[0]:stableList[1]], color='red', label='T')
+                    # # 设置图标标题
+                    # plt.legend()
+                    # plt.title(date, fontsize=24)
+                    # # 设置坐标轴标签
+                    # plt.xlabel("time/s")
+                    # plt.ylabel("")
+                    # # 设置刻度标记的大小
+                    # plt.tick_params(axis='both', labelsize=14)
+                    # # 转绝对地址
+                    # picDirPath = transAddress(picDirAddress)
+                    # # 不存在则创建
+                    # if not os.path.exists(picDirPath):
+                    #     os.makedirs(picDirPath)
+                    #
+                    # picName = date[10:-4] + '稳定段' + str(stableList[0]) + '~' + str(stableList[1]) + '.png'
+                    # print(picName)
+                    # # 预处理文件路径
+                    # picFilePath = os.path.join(picDirPath, picName)
+                    # # 生成图片
+                    # plt.savefig(picFilePath)
+                    # # 清空缓存
+                    # plt.close()
+        # print(result)
+
         # print(self.resultList)
         df = pd.DataFrame(self.resultList)
         # print(df)
@@ -134,7 +180,7 @@ class RF:
         result = {}
         for name in self.RFIndex:
             info = data[name].values
-            info = info[number + 1:number + 31]
+            info = getEMA(info[number + 1:number + 31])
             mean = info.mean()
             var = info.var()
             result[name + '均值'] = mean
@@ -165,47 +211,50 @@ class AdaCost:
     def adaCostData(self):
         for date in self.dataDict:
             data = self.dataDict[date]
-            torque = data['刀盘扭矩'].values
-            number = 0
-            while number < len(torque) - 31:
-                # 判断上升段起点
-                if torque[number] == torque[number + 1] and torque[number] != 0 \
-                        and torque[number + 2] - torque[number + 1] > 2 and torque[number + 30] > 0 \
-                        and torque[number + 2] - torque[number + 1] > 0:
-                    # 判断稳定段起点
-                    number = number + 31
-                    if number < len(torque) - 1:
-                        while torque[number + 1] - torque[number] > 0:
-                            if number + 1 == len(torque):
-                                break
-                            number = number + 1
-
-                    stableData = []
-                    result = {}
-                    end = number
-                    # 通过刀盘扭矩列表方差大于5时， 判断稳定段终点， 并选取稳定段数据
-                    while end < len(torque):
-                        stableData.append(torque[end])
-                        if np.var(stableData) > 5:
-                            end = end - 1
-                            for name in self.AdaCostIndex:
-                                if name != '刀盘扭矩' and name != '桩号':
-                                    result[name + '均值'] = calculateStable(number, data[name].values, end)
-                                    result['围岩等级'] = self.calRockGrade(data['桩号'].values[number: end + 1])
-                            break
-                        elif end + 1 == len(torque):
-                            for name in self.AdaCostIndex:
-                                if name != '刀盘扭矩' and name != '桩号':
-                                    result[name + '均值'] = calculateStable(number, data[name].values, end)
-                                    result['围岩等级'] = self.calRockGrade(data['桩号'].values[number: end + 1])
-                            break
-                        else:
-                            end = end + 1
-                    self.resultList.append(result)
-                    # print(result)
-                    number = end + 1
-                else:
+            torque = getEMA(data['刀盘扭矩'].values)
+            i = 0
+            while i < len(torque) - 101:
+                origin = i
+                while origin < len(torque) - 100:
+                    if torque[origin] > 100:
+                        break
+                    origin = origin + 1
+                number = origin
+                n = 0
+                while number < len(torque):
+                    if torque[number] < 100:
+                        n = n + 1
+                    if n > 50:
+                        break
                     number = number + 1
+                end = number
+                if np.mean(torque[origin:end]) < 100:
+                    i = end + 1
+                    continue
+                riseNum = rise(origin, end, torque)
+
+                stableList = stable(riseNum + 31, end, torque)
+                result = {}
+                for name in self.AdaCostIndex:
+                    if name != '刀盘扭矩' and name != '桩号':
+                        result[name + '均值'] = calculateStable(stableList[0], getEMA(data[name].values), stableList[1])
+                        result['围岩等级'] = self.calRockGrade(data['桩号'].values[stableList[0]: stableList[1]])
+
+                i = end
+                i = i + 1
+
+                flag = 1
+
+                for x in result:
+                    if result[x] == 0:
+                        flag = 0
+                        break
+
+                if np.mean(torque[stableList[0]:stableList[1]]) < 1000:
+                    flag = 0
+
+                if flag == 1:
+                    self.resultList.append(result)
 
         # print(self.resultList)
         df = pd.DataFrame(self.resultList)
@@ -355,6 +404,108 @@ def AllUnZip():
             else:
                 print('This is not zip')
 
+
+def getEMA(data):
+    #平滑值 = a(新数据) + (1-a )(原平滑值)
+    a = 0.2
+    emas = data.copy()  # 创造一个和cps一样大小的集合
+    for i in range(len(data)):
+        if i == 0:
+            emas[i] = data[i]
+        if i > 0:
+            emas[i] = (1-a) * emas[i - 1] +a * data[i]
+    return emas
+
+def isRise(data):
+    riseNumber = 0
+    flag = 0
+    reduction = 0
+    for i in range(len(data) - 1):
+        if data[i + 1] - data[i] > 0:
+            riseNumber = riseNumber + 1
+        if data[i + 1] - data[i] < -20:
+            reduction = reduction + 1
+
+    if riseNumber > 50:
+        flag = 1
+
+    if reduction > 5:
+        flag = 0
+    return flag
+
+
+def slope(data):
+    total = 0
+    for i in range(len(data) - 1):
+        total = (data[i + 1] - data[0])/(i + 1) + total
+
+    return total/100
+
+def rise(origin, end ,torque):
+    number = origin + 40
+    while number < end - 100:
+        # 判断是否为上升段，并选取前30个数据
+        if slope(torque[number:number + 50]) > 6 and \
+                torque[number + 1] - torque[number] > 20 \
+                and isRise(torque[number:number + 100]) != 0:
+            number = number + 1
+            break
+        else:
+            number = number + 1
+    return number
+
+def stable(begin, length, torque):
+    number = begin
+    if number + 100 < length:
+        while slope(torque[number:number + 100]) < -0.5:
+            number = number + 1
+
+    end = number
+    # 通过刀盘扭矩列表方差大于5时， 判断稳定段终点， 并选取稳定段数据
+    while end < length:
+        if slope(torque[end:end + 20]) < -0.3:
+            if end - number < 100:
+                while slope(torque[number:number + 100]) < -0.5 or slope(
+                        torque[number:number + 100]) > 0.5:
+                    number = number + 1
+                    end = number
+                end = end + 1
+                continue
+            break
+        elif end + 1 == len(torque):
+            # # plot根据列表绘制出有意义的图形
+            # plt.plot(torque[number:end + 1], color='blue', label='T')
+            # plt.plot(f[number:end + 1], color='green', label='F')
+            # plt.plot(speed[number:end + 1], color='red', label='S')
+            # plt.legend()
+            # # 设置图标标题
+            # plt.title(date, fontsize=24)
+            # # 设置坐标轴标签
+            # plt.xlabel("time/s")
+            # plt.ylabel("")
+            # # 设置刻度标记的大小
+            # plt.tick_params(axis='both', labelsize=14)
+            # # 转绝对地址
+            # picDirPath = transAddress(picDirAddress)
+            # # 不存在则创建
+            # if not os.path.exists(picDirPath):
+            #     os.makedirs(picDirPath)
+            #
+            # picName = date[10:-4] + '稳定段' + str(number) + '~' + str(end) + '.png'
+            # print(picName)
+            # # 预处理文件路径
+            # picFilePath = os.path.join(picDirPath, picName)
+            # # 生成图片
+            # plt.savefig(picFilePath)
+            # # 清空缓存
+            # plt.close()
+            break
+        else:
+            end = end + 1
+    stable = []
+    stable.append(number)
+    stable.append(end)
+    return stable
 # if '__name__' == '__main__':
 # rf = RF()
 # rf.RFData()
