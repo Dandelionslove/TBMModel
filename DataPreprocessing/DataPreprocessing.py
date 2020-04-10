@@ -94,7 +94,7 @@ class RF:
 
                 stableList = stable(riseNum + 31, end, torque)
                 for index in self.RFStableIndex:
-                    result['稳定段' + index + '均值'] = calculateStable(stableList[0], getEMA(data[index].values), stableList[1])
+                    result['稳定段' + index + '均值'] = calculateStable(stableList[0], data[index].values, stableList[1])#getEMA(
 
                 i = end
                 i = i + 1
@@ -181,7 +181,7 @@ class RF:
         result = {}
         for name in self.RFIndex:
             info = data[name].values
-            info = getEMA(info[number + 1:number + 31])
+            info = info[number + 1:number + 31]#getEMA(
             mean = info.mean()
             var = info.var()
             result[name + '均值'] = mean
