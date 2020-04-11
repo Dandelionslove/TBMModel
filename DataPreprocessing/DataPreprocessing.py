@@ -245,6 +245,9 @@ class AdaCost:
 
                 flag = 1
 
+                if result['围岩等级'] < 0:
+                    flag = 0
+
                 for x in result:
                     if result[x] == 0:
                         flag = 0
@@ -284,7 +287,7 @@ class AdaCost:
 
         # print(rockGradeList)
         try:
-            # bincount（）：统计非负整数的个数，不能统计浮点数
+            # bincount（）：统计非负整数的个数
             counts = np.bincount(rockGradeList)
             # 返回众数
             rockGrade = np.argmax(counts)
