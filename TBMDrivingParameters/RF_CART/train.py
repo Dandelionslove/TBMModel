@@ -22,9 +22,9 @@ next(data_file)
 for content in data_file:
     content = list(map(float, content))
     if len(content) != 0:
-        feature.append(content[0:14])
-        result_f.append(content[15])
-        result_t.append(content[14])
+        feature.append(content[1:15])
+        result_f.append(content[16])
+        result_t.append(content[15])
 scaler = StandardScaler()
 scaler.fit(feature)
 feature = scaler.transform(feature)
