@@ -22,6 +22,7 @@ class AdaCostClassifier(AdaBoostClassifier):
         self.__cost_matrix = cost_matrix
 
     def _boost_discrete(self, iboost, X, y, sample_weight, random_state):
+        # print("iboost", iboost)
         """Implement a single boost using the SAMME discrete algorithm."""
         estimator = self._make_estimator(random_state=random_state)
 
@@ -42,6 +43,7 @@ class AdaCostClassifier(AdaBoostClassifier):
 
         # Stop if classification is perfect
         if estimator_error <= 0:
+            # print("ssssssssssssss")
             return sample_weight, 1., 0.
 
         n_classes = self.n_classes_
@@ -62,34 +64,33 @@ class AdaCostClassifier(AdaBoostClassifier):
 
         # Only boost the weights if I will fit again
         if not iboost == self.n_estimators - 1:
-            # print("=====================================")
-            # print("第",iboost,"次迭代：！！！！！！")
-            # Only boost positive weights
-            # print("第一部分")
+            # print("================================================================")
 
-            # print(estimator_weight * incorrect *
+            # print("cost", self._cost(y, y_predict))
+            # print("without cost", estimator_weight * incorrect *
+            #       ((sample_weight > 0) |
+            #        (estimator_weight < 0))
+            #       )
+            # print("sum",estimator_weight * incorrect *
             #                         ((sample_weight > 0) |
-            #                          (estimator_weight < 0)))
-            # print("第二部分")
-            # print(self._cost(y, y_predict))
+            #                          (estimator_weight < 0))
+            #                         * self._cost(y, y_predict))
             sample_weight *= np.exp(estimator_weight * incorrect *
                                     ((sample_weight > 0) |
                                      (estimator_weight < 0))
-                                    * self._cost(y, y_predict)
+                                    # * self._cost(y, y_predict)
                                     ) # 在原来的基础上乘以self._beta(y, y_predict)，即代价调整函数
-            # print(estimator_weight * incorrect *
-            #                         ((sample_weight > 0) |
-            #                          (estimator_weight < 0))
-            #                         * self._cost(y, y_predict)
-            #                         )
-        return sample_weight, estimator_weight, estimator_error
 
+        return sample_weight, estimator_weight, estimator_error
 
     #  新定义的代价调整函数
     def _cost(self, y, y_hat):
+        # print("================================================================")
+
         res = []
         for i in zip(y, y_hat):
-            res.append(self.__cost_matrix[i[1]][i[0]])
+            # print("结果",i[1],'实际',i[0],'cost',self.__cost_matrix[i[1]][i[0]])
+            res.append(self.__cost_matrix[i[0]][i[1]])
         #     if i[0] == i[1]:
         #         res.append(0)   # 正确分类
         #     elif i[0] == 2: # 真实II级
