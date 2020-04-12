@@ -129,5 +129,6 @@ dmypy.json
 .pyre/
 
 
-SurroundingRockGrade/AdaCost_CART/image/*
-SurroundingRockGrade/AdaCost_CART/model/*
+/SurroundingRockGrade/AdaCost_CART/image/*
+/SurroundingRockGrade/AdaCost_CART/model/*
+/SurroundingRockGrade/AdaCost_CART/data/*
