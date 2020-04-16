@@ -405,7 +405,7 @@ def AllUnZip():
                 # 如果解压缩文件并不存在，解压缩该压缩包
                 if not os.path.exists(txtDirPath + file[0:-4] + '.txt'):
                     fz = zipfile.ZipFile(filePath, 'r')
-                    print(file)
+                    print('finish' + file)
                     for zipFile in fz.namelist():
                         fz.extract(zipFile, txtDirPath)
                         fz.close()
