@@ -20,10 +20,10 @@ picDirAddress = '../../DataPic'
 
 class RF:
     def __init__(self):
-        #存放预处理数据地址
-        self.dataPath = '../TBMDrivingParameters/RF_CART/data'#preDataAddress#
+        # 存放预处理数据地址
+        self.dataPath = '../TBMDrivingParameters/RF_CART/data'  # preDataAddress#
         # 预处理数据文件名
-        self.DataFileName = 'train.csv'#'allIndexRF.csv'#
+        self.DataFileName = 'train.csv'  # 'allIndexRF.csv'#
         # Address为存放txt文件夹相对于DataPreprocessing.py的路径
         self.Address = txtAddress
         # RFIndex为RF需要使用数据的列索引，即参数名称
@@ -92,7 +92,8 @@ class RF:
 
                 stableList = stable(riseNum + 31, end, torque)
                 for index in self.RFStableIndex:
-                    result['稳定段' + index + '均值'] = calculateStable(stableList[0], getEMA(data[index].values), stableList[1])
+                    result['稳定段' + index + '均值'] = calculateStable(stableList[0], getEMA(data[index].values),
+                                                                   stableList[1])
                 i = end
                 i = i + 1
 
@@ -105,7 +106,6 @@ class RF:
 
                 if np.mean(torque[stableList[0]:stableList[1]]) < 1000:
                     flag = 0
-
 
                 if flag == 1:
                     self.resultList.append(result)
@@ -170,7 +170,6 @@ class RF:
         # 生成预处理数文件
         createPreproData(df, self.dataPath, self.DataFileName)
 
-
         # return df
 
     # 判断上升段，并选取上升段数据
@@ -191,11 +190,11 @@ class RF:
 class AdaCost:
     def __init__(self):
         # 预处理数据文件名
-        self.DataFileName = 'adaCostPreData.csv'#'allIndexAdaCost.csv'#'
+        self.DataFileName = 'adaCostPreData.csv'  # 'allIndexAdaCost.csv'#'
         # AdaCostIndex为adacost需要使用数据的列索引，即参数名称，额外加入刀盘扭矩判断上升段与稳定段
         self.AdaCostIndex = ['桩号', '刀盘运行时间', '撑靴压力', '刀盘扭矩', '刀盘转速', '撑靴泵压力', '左撑靴俯仰角', '控制泵压力',
                              '右撑靴俯仰角', '左撑靴滚动角', '左撑靴油缸行程检测', '右撑靴滚动角',
-                             '右撑靴油缸行程检测']#, '刀盘转速电位器值设定值'
+                             '右撑靴油缸行程检测']  # , '刀盘转速电位器值设定值'
         # Address为存放txt文件夹相对于DataPreprocessing.py的路径
         self.Address = txtAddress
 
@@ -236,7 +235,7 @@ class AdaCost:
                 stableList = stable(riseNum + 31, end, torque)
                 result = {}
                 for name in self.AdaCostIndex:
-                    if name != '桩号'and name != '刀盘扭矩':
+                    if name != '桩号' and name != '刀盘扭矩':
                         result[name + '均值'] = calculateStable(stableList[0], getEMA(data[name].values), stableList[1])
                 result['围岩等级'] = self.calRockGrade(data['桩号'].values[stableList[0]: stableList[1]])
 
@@ -345,13 +344,13 @@ def oneTxtHandle(oneDataAddress, index):
     # basicData = basicData.dropna(axis=1, how='all')
     # index = list(basicData.keys())[2:]
     frame = pd.DataFrame(basicData, columns=index)
-    #frame = pd.DataFrame(basicData, columns=index)
+    # frame = pd.DataFrame(basicData, columns=index)
     # 删除缺失行：当行中有任意一个值为缺失时，删除行
     # print(frame)
     data_del_lack_row = frame.dropna()
     # 处理误差
     # print(data_del_lack_row)
-    oneTxtData = errorHandle(data_del_lack_row, index)#data_del_lack_row#
+    oneTxtData = errorHandle(data_del_lack_row, index)  # data_del_lack_row#
     return oneTxtData
 
 
@@ -405,25 +404,27 @@ def AllUnZip():
                 # 如果解压缩文件并不存在，解压缩该压缩包
                 if not os.path.exists(txtDirPath + file[0:-4] + '.txt'):
                     fz = zipfile.ZipFile(filePath, 'r')
-                    print('finish' + file)
-                    for zipFile in fz.namelist():
-                        fz.extract(zipFile, txtDirPath)
-                        fz.close()
+                    try:
+                        for zipFile in fz.namelist():
+                            fz.extract(zipFile, txtDirPath)
+                            fz.close()
+                    except:
+                        print(file + 'has a problem')
             else:
-                print('This is not zip')
-                print(file)
+                print(file + 'This is not zip')
 
 
 def getEMA(data):
-    #平滑值 = a(新数据) + (1-a )(原平滑值)
+    # 平滑值 = a(新数据) + (1-a )(原平滑值)
     a = 0.2
     emas = data.copy()  # 创造一个和cps一样大小的集合
     for i in range(len(data)):
         if i == 0:
             emas[i] = data[i]
         if i > 0:
-            emas[i] = (1-a) * emas[i - 1] +a * data[i]
+            emas[i] = (1 - a) * emas[i - 1] + a * data[i]
     return emas
+
 
 def isRise(data):
     riseNumber = 0
@@ -446,11 +447,12 @@ def isRise(data):
 def slope(data):
     total = 0
     for i in range(len(data) - 1):
-        total = (data[i + 1] - data[0])/(i + 1) + total
+        total = (data[i + 1] - data[0]) / (i + 1) + total
 
-    return total/100
+    return total / 100
 
-def rise(origin, end ,torque):
+
+def rise(origin, end, torque):
     number = origin + 40
     while number < end - 100:
         # 判断是否为上升段，并选取前30个数据
@@ -462,6 +464,7 @@ def rise(origin, end ,torque):
         else:
             number = number + 1
     return number
+
 
 def stable(begin, length, torque):
     number = begin
