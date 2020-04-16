@@ -329,7 +329,10 @@ def AllTxtHandle(dirAddress, index):
         for file in files:
             path = os.path.join(root, file)
             # 处理单个txt文件
-            dataDict[file] = oneTxtHandle(path, index)
+            try:
+                dataDict[file] = oneTxtHandle(path, index)
+            except:
+                print(file + ' has a problem in oneTxtHandle')
 
     return dataDict
 
@@ -409,9 +412,9 @@ def AllUnZip():
                             fz.extract(zipFile, txtDirPath)
                             fz.close()
                     except:
-                        print(file + 'has a problem')
+                        print(file + ' has a problem in AllUnZip')
             else:
-                print(file + 'This is not zip')
+                print(file + ' is not zip')
 
 
 def getEMA(data):
