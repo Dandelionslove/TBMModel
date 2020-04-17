@@ -1,5 +1,5 @@
 from DataPreprocessing import AllUnZip
 from DataPreprocessing import RF
-AllUnZip()
+# AllUnZip()
 rf = RF()
 rf.RFData()

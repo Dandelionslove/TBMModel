@@ -42,10 +42,10 @@ class RF:
             result = {}
             stableList = []
             i = 0
-            # plot根据列表绘制出有意义的图形
+            # # plot根据列表绘制出有意义的图形
             # plt.plot(torque, color='blue', label='T')
-            # plt.plot(f, color='green', label='T')
-            # plt.plot(speed, color='red', label='T')
+            # plt.plot(getEMA(data['总推进力'].values), color='green', label='F')
+            # plt.plot(getEMA(data['推进速度'].values), color='red', label='S')
             # # 设置图标标题
             # plt.legend()
             # plt.title(date, fontsize=24)
@@ -111,8 +111,8 @@ class RF:
                     self.resultList.append(result)
                     # # plot根据列表绘制出有意义的图形
                     # plt.plot(torque[riseNum - 50:riseNum + 80], color='blue', label='T')
-                    # plt.plot(f[riseNum - 50:riseNum + 80], color='green', label='T')
-                    # plt.plot(speed[riseNum - 50:riseNum + 80], color='red', label='T')
+                    # plt.plot(getEMA(data['总推进力'].values[riseNum - 50:riseNum + 80]), color='green', label='F')
+                    # plt.plot(getEMA(data['推进速度'].values[riseNum - 50:riseNum + 80]), color='red', label='S')
                     # plt.legend()
                     # # 设置图标标题
                     # plt.title(date, fontsize=24)
@@ -138,8 +138,8 @@ class RF:
                     #
                     # # plot根据列表绘制出有意义的图形
                     # plt.plot(torque[stableList[0]:stableList[1]], color='blue', label='T')
-                    # plt.plot(f[stableList[0]:stableList[1]], color='green', label='T')
-                    # plt.plot(speed[stableList[0]:stableList[1]], color='red', label='T')
+                    # plt.plot(getEMA(data['总推进力'].values[stableList[0]:stableList[1]]), color='green', label='F')
+                    # plt.plot(getEMA(data['推进速度'].values[stableList[0]:stableList[1]]), color='red', label='S')
                     # # 设置图标标题
                     # plt.legend()
                     # plt.title(date, fontsize=24)
@@ -459,9 +459,10 @@ def rise(origin, end, torque):
     number = origin + 40
     while number < end - 100:
         # 判断是否为上升段，并选取前30个数据
-        if slope(torque[number:number + 50]) > 6 and \
-                torque[number + 1] - torque[number] > 20 \
-                and isRise(torque[number:number + 100]) != 0:
+        if torque[number + 1] - torque[number] > 40:
+            #20
+            # slope(torque[number:number + 50]) > 6 and \\
+            #     and isRise(torque[number:number + 100]) != 0:
             number = number + 1
             break
         else:
