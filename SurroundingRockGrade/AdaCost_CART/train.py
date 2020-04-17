@@ -8,7 +8,6 @@ import pickle
 import os
 import sys
 
-
 path = os.path.abspath(os.path.dirname(sys.argv[0]))
 df = pandas.read_csv(path + '/data/adaCostPreData.csv', encoding='utf-8', index_col=False)
 X = df[['刀盘运行时间均值', '撑靴压力均值', '刀盘转速均值', '撑靴泵压力均值', '左撑靴俯仰角均值', '控制泵压力均值', '右撑靴俯仰角均值',
@@ -25,15 +24,17 @@ cost_matrix = [[0, 0, 0, 0, 0, 0],
 
 # 十折交叉验证
 kf = KFold(n_splits=10)
+
 # model
 adaCost = None
+
 # 记录每次迭代的数据
 train_accuracy_with_n_est = []
 test_accuracy_with_n_est = []
 recall_with_n_est = []
 f1_with_n_est = []
 class_recall_with_n_est = [[], [], [], []]
-# model_pkl = None
+
 for n_est in range(1, 150):
     test_accuracy = 0.0
     train_accuracy = 0.0
@@ -50,7 +51,6 @@ for n_est in range(1, 150):
             cost_matrix=cost_matrix
             )
         adaCost.fit(X[train_index], y[train_index])
-        # print(accuracy_score(y, adaCost.predict(X)))
         true = y[test_index]
         pred = adaCost.predict(X[test_index])
         # 准确率 召回率 f1-score 分类召回率
@@ -58,11 +58,8 @@ for n_est in range(1, 150):
         train_accuracy += accuracy_score(y[train_index], adaCost.predict(X[train_index])) / 10.0
         f1 += f1_score(true, pred, average='macro') / 10.00
         recall += recall_score(true, pred, average='macro') / 10.00
-        # print(y[test_index])
-        # print(adaCost.predict(X[test_index]))
-        p_class, r_class, f_class, support_micro = precision_recall_fscore_support(y_true=true,
-                                                                                   y_pred=pred,
-                                                                            labels=[2, 3, 4, 5], average=None)
+        p_class, r_class, f_class, support_micro = precision_recall_fscore_support(
+            y_true=true, y_pred=pred, labels=[2, 3, 4, 5], average=None)
         class_recall.append(r_class)
 
     # 计算各类的平均召回率，如果该类没有出现，不考虑计入平均值
@@ -83,21 +80,52 @@ for n_est in range(1, 150):
     recall_with_n_est.append(recall)
     f1_with_n_est.append(f1)
 
+
+def log(result_list):
+    result_str = ''
+    for i in range(len(result_list)):
+        result_str += str(i + 1)
+        result_str += '个弱分类器： '
+        result_str += str(result_list[i])
+        result_str += '\n'
+    result_str += '最佳：'
+    result_str += str(max(result_list))
+    return result_str
+
+
+def log2(result_list):
+    result_str = ''
+    for class_i in range(len(result_list)):
+        result_str += 'class'
+        result_str += str(class_i + 2)
+        result_str += '\n'
+        for i in range(len(result_list[class_i])):
+            result_str += str(i + 1)
+            result_str += '个弱分类器： '
+            result_str += str(result_list[class_i][i])
+            result_str += '\n'
+        result_str += '最佳：'
+        result_str += str(max(result_list[class_i]))
+        result_str += '\n'
+    return result_str
+
+
 # 各个指标写入文件
 file = open(path + '/image/test_accuracy_with_n_est.txt','w')
-file.write(str(test_accuracy_with_n_est))
+# result_str = ''
+file.write(log(test_accuracy_with_n_est))
 file.close()
 file = open(path + '/image/train_accuracy_with_n_est.txt','w')
-file.write(str(train_accuracy_with_n_est))
+file.write(log(train_accuracy_with_n_est))
 file.close()
 file = open(path + '/image/recall_with_n_est.txt','w')
-file.write(str(recall_with_n_est))
+file.write(log(recall_with_n_est))
 file.close()
 file = open(path + '/image/f1_with_n_est.txt','w')
-file.write(str(f1_with_n_est))
+file.write(log(f1_with_n_est))
 file.close()
 file = open(path + '/image/class_recall_with_n_est.txt','w')
-file.write(str(class_recall_with_n_est))
+file.write(log2(class_recall_with_n_est))
 file.close()
 
 
