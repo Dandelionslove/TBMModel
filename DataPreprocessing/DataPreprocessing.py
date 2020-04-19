@@ -42,32 +42,6 @@ class RF:
             result = {}
             stableList = []
             i = 0
-            # # plot根据列表绘制出有意义的图形
-            # plt.plot(torque, color='blue', label='T')
-            # plt.plot(getEMA(data['总推进力'].values), color='green', label='F')
-            # plt.plot(getEMA(data['推进速度'].values), color='red', label='S')
-            # # 设置图标标题
-            # plt.legend()
-            # plt.title(date, fontsize=24)
-            # # 设置坐标轴标签
-            # plt.xlabel("time/s")
-            # plt.ylabel("")
-            # # 设置刻度标记的大小
-            # plt.tick_params(axis='both', labelsize=14)
-            # # 转绝对地址
-            # picDirPath = transAddress(picDirAddress)
-            # # 不存在则创建
-            # if not os.path.exists(picDirPath):
-            #     os.makedirs(picDirPath)
-            #
-            # picName = date[10:-4] + '.png'
-            # print(picName)
-            # # 预处理文件路径
-            # picFilePath = os.path.join(picDirPath, picName)
-            # # 生成图片
-            # plt.savefig(picFilePath)
-            # # 清空缓存
-            # plt.close()
             while i < len(torque) - 101:
 
                 origin = i
@@ -107,61 +81,51 @@ class RF:
                 if np.mean(torque[stableList[0]:stableList[1]]) < 1000:
                     flag = 0
 
+                if stableList[0] - riseNum - 30 > 600:
+                    flag = 0
+
+                if stableList[1] - stableList[0] < 100:
+                    flag = 0
+
+                if riseNum - origin > 600:
+                    flag = 0
+
                 if flag == 1:
                     self.resultList.append(result)
-                    # # plot根据列表绘制出有意义的图形
-                    # plt.plot(torque[riseNum - 50:riseNum + 80], color='blue', label='T')
-                    # plt.plot(getEMA(data['总推进力'].values[riseNum - 50:riseNum + 80]), color='green', label='F')
-                    # plt.plot(getEMA(data['推进速度'].values[riseNum - 50:riseNum + 80]), color='red', label='S')
-                    # plt.legend()
-                    # # 设置图标标题
-                    # plt.title(date, fontsize=24)
-                    # # 设置坐标轴标签
-                    # plt.xlabel("time/s")
-                    # plt.ylabel("")
-                    # # 设置刻度标记的大小
-                    # plt.tick_params(axis='both', labelsize=14)
-                    # # 转绝对地址
-                    # picDirPath = transAddress(picDirAddress)
-                    # # 不存在则创建
-                    # if not os.path.exists(picDirPath):
-                    #     os.makedirs(picDirPath)
-                    #
-                    # picName = date[10:-4] + '上升段' + str(riseNum) + '~' + str(riseNum + 30) + '.png'
-                    # print(picName)
-                    # # 预处理文件路径
-                    # picFilePath = os.path.join(picDirPath, picName)
-                    # # 生成图片
-                    # plt.savefig(picFilePath)
-                    # # 清空缓存
-                    # plt.close()
-                    #
-                    # # plot根据列表绘制出有意义的图形
-                    # plt.plot(torque[stableList[0]:stableList[1]], color='blue', label='T')
-                    # plt.plot(getEMA(data['总推进力'].values[stableList[0]:stableList[1]]), color='green', label='F')
-                    # plt.plot(getEMA(data['推进速度'].values[stableList[0]:stableList[1]]), color='red', label='S')
-                    # # 设置图标标题
-                    # plt.legend()
-                    # plt.title(date, fontsize=24)
-                    # # 设置坐标轴标签
-                    # plt.xlabel("time/s")
-                    # plt.ylabel("")
-                    # # 设置刻度标记的大小
-                    # plt.tick_params(axis='both', labelsize=14)
-                    # # 转绝对地址
-                    # picDirPath = transAddress(picDirAddress)
-                    # # 不存在则创建
-                    # if not os.path.exists(picDirPath):
-                    #     os.makedirs(picDirPath)
-                    #
-                    # picName = date[10:-4] + '稳定段' + str(stableList[0]) + '~' + str(stableList[1]) + '.png'
-                    # print(picName)
-                    # # 预处理文件路径
-                    # picFilePath = os.path.join(picDirPath, picName)
-                    # # 生成图片
-                    # plt.savefig(picFilePath)
-                    # # 清空缓存
-                    # plt.close()
+                    # plot根据列表绘制出有意义的图形
+                    plt.plot(torque, color='blue', label='T')
+                    plt.plot(getEMA(data['总推进力'].values), color='green', label='F')
+                    plt.plot(getEMA(data['推进速度'].values), color='red', label='S')
+                    plt.axvline(x=riseNum, ls="-", lw=1, c="black", label='Rise')  # 添加垂直直线
+                    plt.axvline(x=riseNum + 30, ls="-", lw=1, c="black", label='Rise')
+                    plt.axvline(x=stableList[0], ls="-", lw=1, c="purple", label='Stable')
+                    plt.axvline(x=stableList[1], ls="-", lw=1, c="purple", label='Stable')
+
+                    # 设置图标标题
+                    plt.legend()
+                    plt.title(date, fontsize=24)
+                    plt.xlim([origin, end])
+                    # 设置坐标轴标签
+                    plt.xlabel("time/s")
+                    plt.ylabel("")
+                    # 设置刻度标记的大小
+                    plt.tick_params(axis='both', labelsize=14)
+                    # 转绝对地址
+                    picDirPath = transAddress(picDirAddress)
+                    # 不存在则创建
+                    if not os.path.exists(picDirPath):
+                        os.makedirs(picDirPath)
+                    picName = date[10:-4] + ':' + str(origin) + '~' + str(end) + '.png'
+                    print(picName)
+                    print('上升段' + str(riseNum) + '~' + str(riseNum + 30))
+                    print('稳定段' + str(stableList[0]) + '~' + str(stableList[1]))
+                    # 预处理文件路径
+                    picFilePath = os.path.join(picDirPath, picName)
+                    # 生成图片
+                    plt.savefig(picFilePath)
+                    # 清空缓存
+                    plt.close()
+
         # print(result)
 
         # print(self.resultList)
@@ -253,6 +217,15 @@ class AdaCost:
                         break
 
                 if np.mean(torque[stableList[0]:stableList[1]]) < 1000:
+                    flag = 0
+
+                if stableList[0] - riseNum - 30 > 600:
+                    flag = 0
+
+                if stableList[1] - stableList[0] < 100:
+                    flag = 0
+
+                if riseNum - origin > 600:
                     flag = 0
 
                 if flag == 1:
@@ -431,7 +404,6 @@ def getEMA(data):
 
 def isRise(data):
     riseNumber = 0
-    flag = 0
     reduction = 0
     for i in range(len(data) - 1):
         if data[i + 1] - data[i] > 0:
@@ -439,18 +411,16 @@ def isRise(data):
         if data[i + 1] - data[i] < -20:
             reduction = reduction + 1
 
-    if riseNumber > 50:
-        flag = 1
-
     if reduction > 5:
-        flag = 0
-    return flag
+        riseNumber = 0
+
+    return riseNumber
 
 
 def slope(data):
     total = 0
     for i in range(len(data) - 1):
-        total = (data[i + 1] - data[0]) / (i + 1) + total
+        total = (data[i + 1] - data[i]) * (data[i + 1] - data[i]) + total
 
     return total / 100
 
@@ -459,11 +429,8 @@ def rise(origin, end, torque):
     number = origin + 40
     while number < end - 100:
         # 判断是否为上升段，并选取前30个数据
-        if torque[number + 1] - torque[number] > 40:
-            #20
-            # slope(torque[number:number + 50]) > 6 and \\
-            #     and isRise(torque[number:number + 100]) != 0:
-            number = number + 1
+        if torque[number + 1] - torque[number] > 10 and isRise(torque[number:number + 100]) > 70 and \
+            isRise(torque[number + 1:number + 31]) > 20 and slope(torque[number:number + 100]) > 90:
             break
         else:
             number = number + 1
@@ -473,48 +440,23 @@ def rise(origin, end, torque):
 def stable(begin, length, torque):
     number = begin
     if number + 100 < length:
-        while slope(torque[number:number + 100]) < -0.5:
+        while (slope(torque[number:number + 100]) > 150 and np.mean(torque[number:number + 100]) > 2000)\
+                or (slope(torque[number:number + 100]) > 40 and np.mean(torque[number:number + 100]) < 2000):
             number = number + 1
 
     end = number
-    # 通过刀盘扭矩列表方差大于5时， 判断稳定段终点， 并选取稳定段数据
+    # 通过刀盘扭矩时， 判断稳定段终点， 并选取稳定段数据
     while end < length:
-        if slope(torque[end:end + 20]) < -0.3:
+        if slope(torque[end:end + 100]) > 200:
             if end - number < 100:
-                while slope(torque[number:number + 100]) < -0.5 or slope(
-                        torque[number:number + 100]) > 0.5:
+                while (slope(torque[number:number + 100]) > 150 and np.mean(torque[number:number + 100]) > 2000) \
+                        or (slope(torque[number:number + 100]) > 40 and np.mean(torque[number:number + 100]) < 2000):
                     number = number + 1
                     end = number
                 end = end + 1
                 continue
             break
         elif end + 1 == len(torque):
-            # # plot根据列表绘制出有意义的图形
-            # plt.plot(torque[number:end + 1], color='blue', label='T')
-            # plt.plot(f[number:end + 1], color='green', label='F')
-            # plt.plot(speed[number:end + 1], color='red', label='S')
-            # plt.legend()
-            # # 设置图标标题
-            # plt.title(date, fontsize=24)
-            # # 设置坐标轴标签
-            # plt.xlabel("time/s")
-            # plt.ylabel("")
-            # # 设置刻度标记的大小
-            # plt.tick_params(axis='both', labelsize=14)
-            # # 转绝对地址
-            # picDirPath = transAddress(picDirAddress)
-            # # 不存在则创建
-            # if not os.path.exists(picDirPath):
-            #     os.makedirs(picDirPath)
-            #
-            # picName = date[10:-4] + '稳定段' + str(number) + '~' + str(end) + '.png'
-            # print(picName)
-            # # 预处理文件路径
-            # picFilePath = os.path.join(picDirPath, picName)
-            # # 生成图片
-            # plt.savefig(picFilePath)
-            # # 清空缓存
-            # plt.close()
             break
         else:
             end = end + 1
