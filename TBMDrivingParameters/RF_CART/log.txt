@@ -1,12 +1,4 @@
-explained_variance_score of F: 0.8491756650860642
-explained_variance_score of T: 0.6393490577182984
-mean_squared_error of F: 1347290.4413723857
-mean_squared_error of T: 113210.99834632267
-mean_squared_log_error of F: 0.08690332379263971
-mean_squared_log_error of T: 0.023650126526388933
-median_absolute_error of F: 685.0487020826222
-median_absolute_error of T: 187.6259786087153
-mean_absolute_error of F: 864.7548131614909
-mean_absolute_error of T: 244.5729229908162
-r2_score of T: 0.8491741732782359
-r2_score of T: 0.6384404716873575
+best_score of T: 0.7150363462339417
+best_params of T: {'loss': 'huber', 'max_depth': 3, 'max_features': 12, 'min_samples_leaf': 2, 'min_samples_split': 2, 'n_estimators': 110}
+best_score of F: 0.8480148519644122
+best_params of F: {'loss': 'ls', 'max_depth': 3, 'max_features': 12, 'min_samples_leaf': 2, 'min_samples_split': 2, 'n_estimators': 110}
