@@ -39,7 +39,7 @@ class RF:
             data = self.dataDict[date]
             # self.RFIndex = list(data.keys())
             torque = getEMA(data['刀盘扭矩'].values)
-            F = getEMA(data['总推进力'].values)
+            # F = getEMA(data['总推进力'].values)
             result = {}
             stableList = []
             i = 0
@@ -62,17 +62,23 @@ class RF:
                 if np.mean(torque[origin:end]) < 100:
                     i = end + 1
                     continue
-                riseNum = rise(origin, end, F)
+                #为1取该循环段数据，为0删去
+                flag = 1
+                stableList = stable(origin + 100, end, torque)
+                riseNum = rise(origin, stableList[0], torque)
+
+                # if riseNum == 0:
+                #     flag = 0
+                # else:
                 result = self.calculateRise(data, riseNum)
 
-                stableList = stable(riseNum + 31, end, torque)
+
                 for index in self.RFStableIndex:
                     result['稳定段' + index + '均值'] = calculateStable(stableList[0], getEMA(data[index].values),
                                                                    stableList[1])
                 i = end
                 i = i + 1
 
-                flag = 1
 
                 # 当数据中有任意为0时筛去该循环段数据
                 for x in result:
@@ -81,15 +87,18 @@ class RF:
                         break
 
                 # 当稳定段刀盘扭矩值小于1000时筛去该循环段数据。因为可能存在稳定段平稳略大于0的情况
-                if np.mean(torque[stableList[0]:stableList[1]]) < 1000:
+                if np.mean(torque[stableList[0]:stableList[1]]) < 500:
                     flag = 0
 
                 # # 当稳定段起点与上升段第30s距离超过600s时舍去。
                 # if stableList[0] - riseNum - 30 > 600:
                 #     flag = 0
 
-                # 当稳定段数据少于100时，筛去该循环段数据，因为可能存在只有两个点的情况
-                if stableList[1] - stableList[0] < 100:
+                # 当稳定段数据少于50时，筛去该循环段数据，因为可能存在只有两个点的情况
+                if stableList[1] - stableList[0] < 50:
+                    flag = 0
+
+                if isRise(torque[riseNum:riseNum + 31]) < 20:
                     flag = 0
 
                 # # 当前600s还没有选择好上升段起点时，筛去该数据。
@@ -99,13 +108,13 @@ class RF:
                 if flag == 1:
                     self.resultList.append(result)
                     # # plot根据列表绘制出有意义的图形
-                    # # plt.plot(torque, color='blue', label='T')
+                    # plt.plot(torque, color='blue', label='T')
                     # plt.plot(getEMA(data['总推进力'].values), color='green', label='F')
-                    # # plt.plot(getEMA(data['推进速度'].values), color='red', label='S')
+                    # plt.plot(getEMA(data['推进速度'].values), color='red', label='S')
                     # plt.axvline(x=riseNum, ls="-", lw=1, c="black", label='Rise')  # 添加垂直直线
-                    # plt.axvline(x=riseNum + 30, ls="-", lw=1, c="black", label='Rise')
+                    # plt.axvline(x=riseNum + 30, ls="-", lw=1, c="black")
                     # plt.axvline(x=stableList[0], ls="-", lw=1, c="purple", label='Stable')
-                    # plt.axvline(x=stableList[1], ls="-", lw=1, c="purple", label='Stable')
+                    # plt.axvline(x=stableList[1], ls="-", lw=1, c="purple")
                     #
                     # # 设置图标标题
                     # plt.legend()
@@ -222,17 +231,17 @@ class AdaCost:
                         flag = 0
                         break
 
-                if np.mean(torque[stableList[0]:stableList[1]]) < 1000:
+                if np.mean(torque[stableList[0]:stableList[1]]) < 500:
                     flag = 0
 
-                if stableList[0] - riseNum - 30 > 600:
+                # if stableList[0] - riseNum - 30 < 0:
+                #     flag = 0
+
+                if stableList[1] - stableList[0] < 50:
                     flag = 0
 
-                if stableList[1] - stableList[0] < 100:
-                    flag = 0
-
-                if riseNum - origin > 600:
-                    flag = 0
+                # if riseNum - origin > 600:
+                #     flag = 0
 
                 if flag == 1:
                     self.resultList.append(result)
@@ -415,15 +424,13 @@ def isRise(data):
     for i in range(len(data) - 1):
         if data[i + 1] - data[i] > 0:
             riseNumber = riseNumber + 1
-        if data[i + 1] - data[i] < 0:#-20:
+        if data[i + 1] - data[i] < -20:
             reduction = reduction + 1
 
-    # if reduction > 5:
-    #     riseNumber = 0
-    if riseNumber > 10 and reduction > 10:
-        flag = 1
+    if reduction > 5:
+        riseNumber = 0
 
-    return flag #riseNumber
+    return riseNumber
 
 
 def slope(data):
@@ -433,25 +440,28 @@ def slope(data):
 
     return total / 100
 
-def shake(F):
-    total = 0
-    for i in range(len(F) - 2):
-        total += ((F[i + 2] - F[i + 1]) - (F[i + 1] - F[i])) * ((F[i + 2] - F[i + 1]) - (F[i + 1] - F[i]))
+# def shake(F):
+#     total = 0
+#     for i in range(len(F) - 2):
+#         total += ((F[i + 2] - F[i + 1]) - (F[i + 1] - F[i])) * ((F[i + 2] - F[i + 1]) - (F[i + 1] - F[i]))
+#
+#     return total/100
 
-    return total/100
+def rise(origin, stableNum, torque):
+    number = stableNum
+    # 判断是否为上升段，并选取前30个数据
+    while slope(torque[number - 30:number]) < 100 and number > origin + 31:
+        number = number - 1
+    while slope(torque[number - 30:number]) > 30 and number > origin + 31:
+        number = number - 1
+    # if isRise(torque[number:number + 30]) > 15:
+    #     number = 0
 
-# def rise(origin, end, torque):
-def rise(origin, end, F):
-    number = origin + 40
-    while number < end - 100:
-        if shake(F[number:number + 30]) > 1200 and isRise(F[number:number + 30]):
-            break
-        # # 判断是否为上升段，并选取前30个数据
         # if torque[number + 1] - torque[number] > 10 and isRise(torque[number:number + 100]) > 70 and \
         #     isRise(torque[number + 1:number + 31]) > 20 and slope(torque[number:number + 100]) > 90:
         #     break
-        else:
-            number = number + 1
+        # else:
+        #     number = number + 1
     return number
 
 
@@ -466,7 +476,7 @@ def stable(begin, length, torque):
     # 通过刀盘扭矩时， 判断稳定段终点， 并选取稳定段数据
     while end < length:
         if slope(torque[end:end + 100]) > 200:
-            if end - number < 100:
+            if end - number < 50:
                 while (slope(torque[number:number + 100]) > 150 and np.mean(torque[number:number + 100]) > 2000) \
                         or (slope(torque[number:number + 100]) > 40 and np.mean(torque[number:number + 100]) <= 2000):
                     number = number + 1
