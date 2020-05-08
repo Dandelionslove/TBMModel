@@ -18,3 +18,63 @@ def cac(request):
         response['msg'] = str(e)
         response['error_num'] = 1
     return JsonResponse(response)
+
+@require_http_methods(["GET"])
+def cac2(request):
+    response={}
+    try:
+        response['result']=int(request.GET['i'])-int(request.GET['j'])
+        response['res']="结果1"
+        response['error_num']=10
+    except Exception as e:
+        response['msg'] = str(e)
+        response['error_num'] = 1
+    return JsonResponse(response)
+
+@require_http_methods(["GET"])
+def cac3(request):
+    response={}
+    try:
+        response['result']=int(request.GET['i'])-int(request.GET['j'])
+        response['res']="结果1"
+        response['error_num']=10
+    except Exception as e:
+        response['msg'] = str(e)
+        response['error_num'] = 1
+    return JsonResponse(response)
+
+@require_http_methods(["GET"])
+def cac4(request):
+    response={}
+    try:
+        response['result']=int(request.GET['i'])-int(request.GET['j'])
+        response['res']="结果1"
+        response['error_num']=10
+    except Exception as e:
+        response['msg'] = str(e)
+        response['error_num'] = 1
+    return JsonResponse(response)
+
+@require_http_methods(["GET"])
+def cac5(request):
+    response={}
+    try:
+        response['result']=int(request.GET['i'])-int(request.GET['j'])
+        response['res']="结果1"
+        response['error_num']=10
+    except Exception as e:
+        response['msg'] = str(e)
+        response['error_num'] = 1
+    return JsonResponse(response)
+
+@require_http_methods(["GET"])
+def cac6(request):
+    response={}
+    try:
+        response['result']=int(request.GET['i'])-int(request.GET['j'])
+        response['res']="结果1"
+        response['error_num']=10
+    except Exception as e:
+        response['msg'] = str(e)
+        response['error_num'] = 1
+    return JsonResponse(response)
