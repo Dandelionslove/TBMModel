@@ -1,19 +1,15 @@
-import pandas
-from sklearn.metrics import accuracy_score
-from sklearn.tree import DecisionTreeClassifier
-import matplotlib.pyplot as plt
-from AdaCost import AdaCostClassifier
-from sklearn.model_selection import KFold
 import pickle
+import os
+import sys
 
 
-df = pandas.read_csv(r"C:\Users\chend\Desktop\Book1.csv", encoding='utf-8', index_col=False)
-X = df[['dim1', 'dim2', 'dim3']].values
-y = df['y'].values
-
-
-f = open('adaCost.txt', 'rb')
-s = f.read()
-adaCost = pickle.loads(s)
-
-print(adaCost.predict(X[1]))
+def adaCost(sample):
+    # 可以接受（样本数X特征数）这样的二维ndarray，也可以接受只有一个样本的一维数组（会自动转换为只有一行的二维数组）
+    # 输出一个一维ndarray，第i个元素（数字）代表第i个样本预测的围岩等级。
+    path = os.path.abspath(os.path.dirname(sys.argv[0]))
+    f = open(path + '/model/adaCost.pickle', 'rb')
+    s = f.read()
+    model = pickle.loads(s)
+    if len(sample.shape) == 1:
+        sample = sample.reshape(1, len(sample))
+    return model.predict(sample)
