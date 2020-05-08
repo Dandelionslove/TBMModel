@@ -1,4 +1,20 @@
-best_score of T: 0.7150363462339417
-best_params of T: {'loss': 'huber', 'max_depth': 3, 'max_features': 12, 'min_samples_leaf': 2, 'min_samples_split': 2, 'n_estimators': 110}
-best_score of F: 0.8480148519644122
-best_params of F: {'loss': 'ls', 'max_depth': 3, 'max_features': 12, 'min_samples_leaf': 2, 'min_samples_split': 2, 'n_estimators': 110}
+explained_variance_score of T: 0.2694214510976034
+explained_variance_score of F: 0.6319240010648072
+mean_squared_error of T: 124927.9097351381
+mean_squared_error of F: 1638775.6868044445
+mean_squared_log_error of T: 0.04563918075578884
+mean_squared_log_error of F: 0.013325526314095592
+median_absolute_error of T: 220.1185309971113
+median_absolute_error of F: 845.4231461590789
+mean_absolute_error of T: 266.47188519116577
+mean_absolute_error of F: 1000.671204200412
+r2_score of T: 0.26917520802443884
+r2_score of F: 0.6302329880029824
+importances of T: [0.21099625 0.11835675 0.01570867 0.01094908 0.02110801 0.00467533
+ 0.06678808 0.03206374 0.00716052 0.01666411 0.01288869 0.00983618
+ 0.09652748 0.37627712]
+importances of F: [0.46900635 0.14523169 0.00476355 0.00896066 0.03337004 0.0171798
+ 0.10447378 0.01517939 0.00498607 0.00730517 0.01094768 0.00490312
+ 0.11438893 0.05930376]
+cross_val_score of F: [0.59822439 0.57878742 0.63865012 0.61307196 0.50339764]
+cross_val_score of F: [0.70057905 0.79473764 0.76900571 0.72669274 0.67900421]
