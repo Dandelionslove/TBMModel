@@ -2,4 +2,4 @@ from django.conf.urls import url,include
 
 from . import views
 
-urlpatterns=[url(r'1$',views.cac,),]
+urlpatterns=[url(r'RF_para',views.RF1,),]
