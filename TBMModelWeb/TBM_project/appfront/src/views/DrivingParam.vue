@@ -177,20 +177,20 @@ export default {
 				}
 			],
 			ManualForm: {
-				input1: "",
-				input2: "",
-				input3: "",
-				input4: "",
-				input5: "",
-				input6: "",
-				input7: "",
-				input8: "",
-				input9: "",
-				input10: "",
-				input11: "",
-				input12: "",
-				input13: "",
-				input14: "",
+				input1: "9884.709148247640",
+				input2: "4282792.478886330",
+				input3: "580.2759022011320",
+				input4: "106839.89906191500",
+				input5: "1016.0895842466500",
+				input6: "230300.9990925620",
+				input7: "12.27173775565610",
+				input8: "72.42625214652270",
+				input9: "6927.610487980730",
+				input10: "526175.9346199800",
+				input11: "5.1681886625443200",
+				input12: "0.326242984454731",
+				input13: "7.216352884750970",
+				input14: "58.925172019680400",
 			},
 		};
 	},
@@ -269,8 +269,8 @@ export default {
 					'data': this.ManualForm
 				},
 			}).then(res => {
-				this.MaunalResult[0].value = res[0];
-				this.MaunalResult[1].value = res[1];
+				this.MaunalResult[0].value = res.data[0];
+				this.MaunalResult[1].value = res.data[1];
 			}).catch(err => {
 				alert(err);
 			})
