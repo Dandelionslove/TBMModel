@@ -366,10 +366,13 @@ def AllTxtHandle(dirAddress, index):
         for file in files:
             path = os.path.join(root, file)
             # 处理单个txt文件
-            try:
-                dataDict[file] = oneTxtHandle(path, index)
-            except:
-                print(file + ' has a problem in oneTxtHandle')
+            if file.endswith('txt'):
+                try:
+                    dataDict[file] = oneTxtHandle(path, index)
+                except:
+                    print(file + ' has a problem in oneTxtHandle')
+            else:
+                print(file + ' is not a txt')
 
     return dataDict
 
@@ -565,7 +568,7 @@ def stable(begin, length, torque):
             end = end + 1
     stable = []
     stable.append(number)
-    stable.append(end)
+    stable.append(end + 1)
     return stable
 # if '__name__' == '__main__':
 # rf = RF()
