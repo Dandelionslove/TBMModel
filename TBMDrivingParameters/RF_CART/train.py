@@ -11,6 +11,7 @@ import joblib
 import csv
 import os
 import sys
+import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import GridSearchCV
@@ -19,14 +20,22 @@ path = os.path.abspath(os.path.dirname(sys.argv[0]))
 feature = []
 result_f = []
 result_t = []
-data_file = csv.reader(open(path + '/data/train.csv'))
-next(data_file)
-for content in data_file:
-    content = list(map(float, content))
-    if len(content) != 0:
-        feature.append(content[1:15])
-        result_t.append(content[15])
-        result_f.append(content[16])
+# data_file = csv.reader(open(path + '/data/train.csv'))
+# next(data_file)
+# for content in data_file:
+#     content = list(map(float, content))
+#     if len(content) != 0:
+#         feature.append(content[1:15])
+#         result_t.append(content[15])
+#         result_f.append(content[16])
+# print(feature)
+data_file = pd.read_csv((path + '/data/train.csv'), sep=',', engine='python')
+result_t = data_file['稳定段刀盘扭矩均值'].values
+result_f = data_file['稳定段总推进力均值'].values
+data_file = data_file.values
+for i in range(len(data_file)):
+    content = list(map(float, data_file[i]))
+    feature.append(content[1:15])
 scaler = StandardScaler()
 scaler.fit(feature)
 feature = scaler.transform(feature)

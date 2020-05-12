@@ -11,6 +11,7 @@ import joblib
 import csv
 import os
 import sys
+import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import GridSearchCV
@@ -19,14 +20,19 @@ path = os.path.abspath(os.path.dirname(sys.argv[0]))
 feature = []
 result_f = []
 result_t = []
-data_file = csv.reader(open(path + '/data/train.csv'))
-next(data_file)
-for content in data_file:
-    content = list(map(float, content))
-    if len(content) != 0:
-        feature.append(content[1:15])
-        result_t.append(content[15])
-        result_f.append(content[16])
+data_file = pd.read_csv((path + '/data/train.csv'), sep=',', engine='python')
+result_t = data_file['稳定段刀盘扭矩均值'].values
+result_f = data_file['稳定段总推进力均值'].values
+data_file = data_file.values
+for i in range(len(data_file)):
+    content = list(map(float, data_file[i]))
+    feature.append(content[1:15])
+# for content in data_file:
+#     content = list(map(float, content))
+#     if len(content) != 0:
+#         feature.append(content[1:15])
+#         result_t.append(content[15])
+#         result_f.append(content[16])
 scaler = StandardScaler()
 scaler.fit(feature)
 feature = scaler.transform(feature)
@@ -35,27 +41,6 @@ feature_train_t, feature_test_t, result_train_t, result_test_t = \
 
 feature_train_f, feature_test_f, result_train_f, result_test_f = \
     train_test_split(feature, result_f, test_size=0.1, random_state=0)
-
-# range_ = range(20, 100, 10)
-# scores_f = []
-# for i in range_:
-#     rf = GradientBoostingRegressor(n_estimators=i)
-#     rf.fit(feature_train_f, result_train_f)
-#     predict_result_f = rf.predict(feature_test_f)
-#     score = r2_score(predict_result_f, result_test_f)
-#     scores_f.append(score)
-# plt.plot(range_, scores_f)
-# plt.show()
-
-# scores_t = []
-# for i in range_:
-#     rf = GradientBoostingRegressor(n_estimators=i)
-#     rf.fit(feature_train_t, result_train_t)
-#     predict_result_t = rf.predict(feature_test_t)
-#     score = r2_score(predict_result_t, result_test_t)
-#     scores_t.append(score)
-# plt.plot(range_, scores_t)
-# plt.show()
 
 param = {
     'loss': ['ls', 'lad', 'huber', 'quantile'],
@@ -72,27 +57,16 @@ param = {
     'learning_rate': [
         0.10, 0.11, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19,
         0.20, 0.21, 0.22, 0.23, 0.24, 0.25, 0.26, 0.27, 0.28, 0.29,
-        0.30, 0.31, 0.32, 0.33, 0.34, 0.35, 0.36, 0.37, 0.38, 0.39,
-        0.40, 0.41, 0.42, 0.43, 0.44, 0.45, 0.46, 0.47, 0.48, 0.49,
-        0.5
+        0.30
     ],
     'min_weight_fraction_leaf': [
         0.00, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09,
         0.10, 0.11, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19,
         0.20, 0.21, 0.22, 0.23, 0.24, 0.25, 0.26, 0.27, 0.28, 0.29,
-        0.30, 0.31, 0.32, 0.33, 0.34, 0.35, 0.36, 0.37, 0.38, 0.39,
-        0.40, 0.41, 0.42, 0.43, 0.44, 0.45, 0.46, 0.47, 0.48, 0.49,
-        0.5
+        0.30
     ],
 }
-# param = {
-#     'loss': ['ls', 'lad', 'huber', 'quantile'],
-#     'n_estimators': range(100, 120, 10),
-#     'max_depth': range(2, 4, 1),
-#     'max_features': range(12, 14, 1),
-#     'min_samples_split': range(2, 4, 1),
-#     'min_samples_leaf': range(1, 3, 1),
-# }
+
 gcv_t = GridSearchCV(estimator=GradientBoostingRegressor(),
                      param_grid=param,
                      cv=2)
