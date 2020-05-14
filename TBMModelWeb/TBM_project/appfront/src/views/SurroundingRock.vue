@@ -301,7 +301,7 @@ export default {
 				this.modifyTableDataToBeSubmited
 			);
 			this.$axios({
-				url: "http://127.0.0.1:8000/api/adaCostBatch",
+				url: "http://127.0.0.1:8000/api/AC_batch",
 				methods: "post",
 				params: {
 					data: tableToBeSubmited
@@ -343,7 +343,7 @@ export default {
 				return;
 			}
 			this.$axios({
-				url: "http://127.0.0.1:8000/api/AC_batch",
+				url: "http://127.0.0.1:8000/api/AC_file",
 				methods: "post",
 				params: {
 					data: this.zip
@@ -391,7 +391,7 @@ export default {
 		// },
 		handleModelApplyManualSubmit: function() {
 			this.$axios({
-				url: "http://127.0.0.1:8000/api/adaCostManual",
+				url: "http://127.0.0.1:8000/api/AC_para",
 				methods: "post",
 				params: {
 					data: this.ManualForm

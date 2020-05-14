@@ -124,16 +124,16 @@
 								<el-col :span="4">
 									<el-upload
 										class="upload-doc"
-										:on-error="handleModelApplyUpload"
-										accept=".csv"
+										:on-error="handleZipUpload"
+										accept=".zip"
 										:limit="1"
 										action
 									>
-										<el-button type="success" round>上传文档(csv)</el-button>
+										<el-button type="success" round>上传文档(zip)</el-button>
 									</el-upload>
 								</el-col>
 								<el-col :span="4">
-									<el-button type="warning" round @click="handleModelApplyBatchSubmit">开始预测(csv)</el-button>
+									<el-button type="warning" round @click="handleModelApplyBatchSubmit">开始预测</el-button>
 								</el-col>
 							</el-row>
 							<el-table :data="modelApplyAllData" height="330px" style="width: 100%">
@@ -314,7 +314,7 @@ export default {
 				this.modifyTableDataToBeSubmited
 			);
 			this.$axios({
-				url: "http://127.0.0.1:8000/api/RFBatch",
+				url: "http://127.0.0.1:8000/api/RF_batch",
 				methods: "post",
 				params: {
 					data: tableToBeSubmited
@@ -350,42 +350,65 @@ export default {
 			}
 			return dataRow;
 		},
+		handleZipUpload: function(response, file, fileList) {
+			this.zip = file;
+		},
 		handleModelApplyBatchSubmit: function() {
-			if (this.modelApplyAllData.length == 0) {
+			if (this.zip.length === 0) {
 				this.$message({
 					message: "请先上传数据集！",
 					type: "warning"
 				});
 				return;
 			}
-			// 去除已经有的两列结果
-			var tableToBeSubmited = [];
-			var tableToBeSubmited = this.modelApplyAllData.map(
-				this.modifyTableDataToBeSubmited
-			);
 			this.$axios({
-				url: "http://127.0.0.1:8000/api/RFBatch",
+				url: "http://127.0.0.1:8000/api/AC_file",
 				methods: "post",
 				params: {
-					data: tableToBeSubmited
+					data: this.zip
 				}
+			}).then(res => {
+				alert(res);
+			}).catch(err => {
+				alert(err);
 			})
-				.then(res => {
-					//给modelApplyAllData加2列
-				})
-				.catch(err => {
-					alert(err);
-				});
-			var temp = [];
-			this.modelApplyAllData.forEach(function(value, index) {
-				console.log(index);
-
-				temp[index] = value;
-				temp[index]["F_predict"] = 100;
-				temp[index]["T_predict"] = 100;
-			});
-			this.modelApplyAllData = temp;
 		},
+		// handleModelApplyBatchSubmit: function() {
+		// 	if (this.modelApplyAllData.length == 0) {
+		// 		this.$message({
+		// 			message: "请先上传数据集！",
+		// 			type: "warning"
+		// 		});
+		// 		return;
+		// 	}
+		// 	// 去除已经有的两列结果
+		// 	var tableToBeSubmited = [];
+		// 	var tableToBeSubmited = this.modelApplyAllData.map(
+		// 		this.modifyTableDataToBeSubmited
+		// 	);
+		// 	this.$axios({
+		// 		url: "http://127.0.0.1:8000/api/RF_batch",
+		// 		methods: "post",
+		// 		params: {
+		// 			data: tableToBeSubmited
+		// 		}
+		// 	})
+		// 		.then(res => {
+		// 			//给modelApplyAllData加2列
+		// 		})
+		// 		.catch(err => {
+		// 			alert(err);
+		// 		});
+		// 	var temp = [];
+		// 	this.modelApplyAllData.forEach(function(value, index) {
+		// 		console.log(index);
+		//
+		// 		temp[index] = value;
+		// 		temp[index]["F_predict"] = 100;
+		// 		temp[index]["T_predict"] = 100;
+		// 	});
+		// 	this.modelApplyAllData = temp;
+		// },
 		handleModelApplyManualSubmit: function() {
 			this.$axios({
 				url: "http://127.0.0.1:8000/api/RF_para",
@@ -403,27 +426,27 @@ export default {
 				});
 		},
 
-		handleModelApplyUpload: function(err, obj, fileList) {
-			var reader = new FileReader();
-			reader.readAsText(obj.raw);
-			var dataList = [];
-
-			reader.onload = function() {
-				var csvarry = this.result.split("\r\n");
-				var headers = csvarry[0].split(",");
-				for (var i = 1; i < csvarry.length; i++) {
-					var dataRow = {};
-					var temp = csvarry[i].split(",");
-					for (var j = 0; j < temp.length; j++) {
-						dataRow[headers[j]] = temp[j];
-					}
-					dataRow["predict_T"] = 0;
-					dataRow["predict_F"] = 0;
-					dataList.push(dataRow);
-				}
-			};
-			this.modelApplyAllData = dataList;
-		},
+		// handleModelApplyUpload: function(err, obj, fileList) {
+		// 	var reader = new FileReader();
+		// 	reader.readAsText(obj.raw);
+		// 	var dataList = [];
+		//
+		// 	reader.onload = function() {
+		// 		var csvarry = this.result.split("\r\n");
+		// 		var headers = csvarry[0].split(",");
+		// 		for (var i = 1; i < csvarry.length; i++) {
+		// 			var dataRow = {};
+		// 			var temp = csvarry[i].split(",");
+		// 			for (var j = 0; j < temp.length; j++) {
+		// 				dataRow[headers[j]] = temp[j];
+		// 			}
+		// 			dataRow["predict_T"] = 0;
+		// 			dataRow["predict_F"] = 0;
+		// 			dataList.push(dataRow);
+		// 		}
+		// 	};
+		// 	this.modelApplyAllData = dataList;
+		// },
 
 		tableRowClassName({ row, rowIndex }) {
 			if (rowIndex === 5) {
