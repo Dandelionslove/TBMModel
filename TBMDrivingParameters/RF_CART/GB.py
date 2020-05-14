@@ -45,7 +45,7 @@ feature_train_f, feature_test_f, result_train_f, result_test_f = \
 param = {
     'loss': ['ls', 'lad', 'huber', 'quantile'],
     'n_estimators':
-    range(100, 500, 10),
+    range(50, 150, 10),
     'max_depth':
     range(2, 20, 1),
     'max_features':
