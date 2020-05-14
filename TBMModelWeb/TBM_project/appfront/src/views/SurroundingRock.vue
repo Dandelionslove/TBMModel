@@ -57,8 +57,8 @@
 							:prop="key"
 							:label="key"
 						></el-table-column>
-						<el-table-column fixed="right" prop="result" label="实际结果"></el-table-column>
-						<el-table-column fixed="right" prop="predict_result" label="测试结果"></el-table-column>
+						<el-table-column fixed="right" prop="grade" label="实际结果"></el-table-column>
+						<el-table-column fixed="right" prop="predict_grade" label="测试结果"></el-table-column>
 					</el-table>
 				</el-tab-pane>
 				<el-tab-pane label="模型使用" width="100%">
@@ -136,7 +136,7 @@
 									:prop="key"
 									:label="key"
 								></el-table-column>
-								<el-table-column fixed="right" prop="F" label="围岩等级结果"></el-table-column>
+								<el-table-column fixed="right" prop="grade_predict" label="围岩等级结果"></el-table-column>
 							</el-table>
 						</el-tab-pane>
 					</el-tabs>
@@ -240,7 +240,7 @@ export default {
 					var temp = csvarry[i].split(",");
 					for (var j = 0; j < temp.length; j++) {
 						dataRow[headers[j]] = temp[j];
-						if (i == 1 && headers[j] != "result") {
+						if (i == 1 && headers[j] != "grade") {
 							testTableColumnPropRow[headers[j]] = "1";
 						}
 					}
@@ -285,6 +285,14 @@ export default {
 			this.modelTestRandomShowingData = dataList;
 		},
 		handleModelTestSubmit: function() {
+			if (this.modelTestAllUploadData.length == 0) {
+				this.$message({
+					message: "请先上传数据集！",
+					type: "warning"
+				});
+				return;
+			}
+			// 去除已经有的两列结果
 			var tableToBeSubmited = [];
 			var tableToBeSubmited = this.modelTestRandomShowingData.map(
 				this.modifyTableDataToBeSubmited
@@ -302,21 +310,41 @@ export default {
 				.catch(err => {
 					alert(err);
 				});
+			var temp = [];
+			this.modelTestRandomShowingData.forEach(function(value, index) {
+				console.log(index);
+
+				temp[index] = value;
+				temp[index]["grade_predict"] = 100;
+			});
+			this.modelTestRandomShowingData = temp;
 		},
 		modifyTableDataToBeSubmited: function(value, index, array) {
 			var dataRow = {};
 			for (var key in value) {
-				if (key == "result" || key == "predict_result") continue;
+				if (key == "grade" || key == "grade_predict") continue;
 				dataRow[key] = value[key];
 			}
 			return dataRow;
 		},
 		handleModelApplyBatchSubmit: function() {
+			if (this.modelApplyAllData.length == 0) {
+				this.$message({
+					message: "请先上传数据集！",
+					type: "warning"
+				});
+				return;
+			}
+			// 去除已经有的两列结果
+			var tableToBeSubmited = [];
+			var tableToBeSubmited = this.modelApplyAllData.map(
+				this.modifyTableDataToBeSubmited
+			);
 			this.$axios({
 				url: "http://127.0.0.1:8000/api/adaCostBatch",
 				methods: "post",
 				params: {
-					data: this.modelApplyAllData
+					data: tableToBeSubmited
 				}
 			})
 				.then(res => {
@@ -325,6 +353,14 @@ export default {
 				.catch(err => {
 					alert(err);
 				});
+			var temp = [];
+			this.modelApplyAllData.forEach(function(value, index) {
+				console.log(index);
+
+				temp[index] = value;
+				temp[index]["grade_predict"] = 100;
+			});
+			this.modelApplyAllData = temp;
 		},
 		handleModelApplyManualSubmit: function() {
 			this.$axios({

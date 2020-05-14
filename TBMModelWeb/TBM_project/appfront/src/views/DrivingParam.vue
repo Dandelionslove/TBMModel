@@ -53,10 +53,10 @@
 							:prop="key"
 							:label="key"
 						></el-table-column>
-						<el-table-column fixed="right" prop="Fresult" label="F实际结果"></el-table-column>
-						<el-table-column fixed="right" prop="Tresult" label="T实际结果"></el-table-column>
-						<el-table-column fixed="right" prop="Fpredict_result" label="F测试结果"></el-table-column>
-						<el-table-column fixed="right" prop="Tpredict_result" label="T测试结果"></el-table-column>
+						<el-table-column fixed="right" prop="F" label="F实际结果"></el-table-column>
+						<el-table-column fixed="right" prop="T" label="T实际结果"></el-table-column>
+						<el-table-column fixed="right" prop="F_predict" label="F测试结果"></el-table-column>
+						<el-table-column fixed="right" prop="T_predict" label="T测试结果"></el-table-column>
 					</el-table>
 				</el-tab-pane>
 				<el-tab-pane label="模型使用" width="100%">
@@ -143,8 +143,8 @@
 									:prop="key"
 									:label="key"
 								></el-table-column>
-								<el-table-column fixed="right" prop="F" label="F结果"></el-table-column>
-								<el-table-column fixed="right" prop="T" label="T结果"></el-table-column>
+								<el-table-column fixed="right" prop="F_predict" label="F结果"></el-table-column>
+								<el-table-column fixed="right" prop="T_predict" label="T结果"></el-table-column>
 							</el-table>
 						</el-tab-pane>
 					</el-tabs>
@@ -255,7 +255,7 @@ export default {
 					var temp = csvarry[i].split(",");
 					for (var j = 0; j < temp.length; j++) {
 						dataRow[headers[j]] = temp[j];
-						if (i == 1 && headers[j] != "result") {
+						if (i == 1 && headers[j] != "F" && headers[j] != "T") {
 							testTableColumnPropRow[headers[j]] = "1";
 						}
 					}
@@ -266,13 +266,14 @@ export default {
 
 			this.modelTestAllUploadData = dataList;
 			this.modelTestTableColumnNameWithoutResult = testTableColumnPropList;
-			// randomData();
+			// this.randomData();
 			this.$message({
 				message: "上传成功，请点击随即更换测试数据",
 				type: "success"
 			});
 		},
 		randomData: function() {
+			console.log(this.modelTestRandomShowingData);
 			if (this.modelTestAllUploadData.length == 0) {
 				this.$message({
 					message: "请先上传数据集！",
@@ -300,6 +301,14 @@ export default {
 			this.modelTestRandomShowingData = dataList;
 		},
 		handleModelTestSubmit: function() {
+			if (this.modelTestAllUploadData.length == 0) {
+				this.$message({
+					message: "请先上传数据集！",
+					type: "warning"
+				});
+				return;
+			}
+			// 去除已经有的两列结果
 			var tableToBeSubmited = [];
 			var tableToBeSubmited = this.modelTestRandomShowingData.map(
 				this.modifyTableDataToBeSubmited
@@ -317,21 +326,48 @@ export default {
 				.catch(err => {
 					alert(err);
 				});
+			var temp = [];
+			this.modelTestRandomShowingData.forEach(function(value, index) {
+				console.log(index);
+
+				temp[index] = value;
+				temp[index]["F_predict"] = 100;
+				temp[index]["T_predict"] = 100;
+			});
+			this.modelTestRandomShowingData = temp;
 		},
 		modifyTableDataToBeSubmited: function(value, index, array) {
 			var dataRow = {};
 			for (var key in value) {
-				if (key == "Fresult" || key == "Fpredict_result" || key == "Tresult" || key == "Tpredict_result") continue;
+				if (
+					key == "F" ||
+					key == "F_predict" ||
+					key == "T" ||
+					key == "T_predict"
+				)
+					continue;
 				dataRow[key] = value[key];
 			}
 			return dataRow;
 		},
 		handleModelApplyBatchSubmit: function() {
+			if (this.modelApplyAllData.length == 0) {
+				this.$message({
+					message: "请先上传数据集！",
+					type: "warning"
+				});
+				return;
+			}
+			// 去除已经有的两列结果
+			var tableToBeSubmited = [];
+			var tableToBeSubmited = this.modelApplyAllData.map(
+				this.modifyTableDataToBeSubmited
+			);
 			this.$axios({
 				url: "http://127.0.0.1:8000/api/RFBatch",
 				methods: "post",
 				params: {
-					data: this.modelApplyAllData
+					data: tableToBeSubmited
 				}
 			})
 				.then(res => {
@@ -340,6 +376,15 @@ export default {
 				.catch(err => {
 					alert(err);
 				});
+			var temp = [];
+			this.modelApplyAllData.forEach(function(value, index) {
+				console.log(index);
+
+				temp[index] = value;
+				temp[index]["F_predict"] = 100;
+				temp[index]["T_predict"] = 100;
+			});
+			this.modelApplyAllData = temp;
 		},
 		handleModelApplyManualSubmit: function() {
 			this.$axios({
@@ -372,6 +417,8 @@ export default {
 					for (var j = 0; j < temp.length; j++) {
 						dataRow[headers[j]] = temp[j];
 					}
+					dataRow["predict_T"] = 0;
+					dataRow["predict_F"] = 0;
 					dataList.push(dataRow);
 				}
 			};
