@@ -48,15 +48,16 @@ def RF1(request):
 
 @require_http_methods(["GET"])
 def RF2(request):
-    response = {}
-    try:
-        response['result'] = int(request.GET['i']) - int(request.GET['j'])
-        response['res'] = "结果1"
-        response['error_num'] = 10
-    except Exception as e:
-        response['msg'] = str(e)
-        response['error_num'] = 1
-    return JsonResponse(response)
+    res = []
+    for i in json.loads(request.GET['data']).values():
+        p = []
+        for j in i:
+            p.append(float(j))
+        print(p)
+        response = RF_CART([p])
+        data = [response[0][0], response[1][0]]
+        res.append(data)
+    return JsonResponse(res, safe=False)
 
 
 @require_http_methods(["GET"])
@@ -80,20 +81,21 @@ def AC1(request):
     print(p)
     p = np.array(p)
     response = adaCost(p)
-    return JsonResponse(response)
+    return JsonResponse(response, safe=False)
 
 
 @require_http_methods(["GET"])
 def AC2(request):
-    response = {}
-    try:
-        response['result'] = int(request.GET['i']) - int(request.GET['j'])
-        response['res'] = "结果1"
-        response['error_num'] = 10
-    except Exception as e:
-        response['msg'] = str(e)
-        response['error_num'] = 1
-    return JsonResponse(response)
+    nd=[]
+    for i in json.loads(request.GET['data']).values():
+        p = []
+        for j in i:
+            p.append(float(j))
+        print(p)
+        nd.append(p)
+    nd = np.array(nd)
+    response = adaCost(nd)
+    return JsonResponse(response, safe=False)
 
 
 @require_http_methods(["GET"])
