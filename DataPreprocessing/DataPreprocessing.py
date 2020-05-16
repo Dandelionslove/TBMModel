@@ -90,8 +90,9 @@ class RF:
                 # plt.close()
                 #为1取该循环段数据，为0删去
                 flag = 1
-                stableList = stable(origin, end, torque)
-                riseNum = rise(origin, stableList[0], torque, F)
+                riseNum = rise(origin, end, torque, F)
+                stableList = stable(riseNum, end, torque)
+
 
 
 
@@ -365,10 +366,13 @@ def AllTxtHandle(dirAddress, index):
         for file in files:
             path = os.path.join(root, file)
             # 处理单个txt文件
-            try:
-                dataDict[file] = oneTxtHandle(path, index)
-            except:
-                print(file + ' has a problem in oneTxtHandle')
+            if file.endswith('txt'):
+                try:
+                    dataDict[file] = oneTxtHandle(path, index)
+                except:
+                    print(file + ' has a problem in oneTxtHandle')
+            else:
+                print(file + ' is not a txt')
 
     return dataDict
 
@@ -506,8 +510,8 @@ def isDown(F):
 
 
 
-def rise(origin, stableNum, torque, F):
-    number = stableNum
+def rise(origin, end, torque, F):
+    number = origin
     flag = 1
     # 判断是否为上升段，并选取前30个数据
     # while slope(torque[number - 30:number]) < 100 and number > origin + 31:
@@ -516,26 +520,26 @@ def rise(origin, stableNum, torque, F):
     #     number = number - 1
     # if isRise(torque[number:number + 30]) > 15:
     #     number = 0
-    while riseEnd(F[number - 30:number]) < 5:
-        if number <= origin:
-            number = 0
-            flag = 0
-            break
-        number = number - 1
-    if flag != 0:
-        number = number - 30
-        # print(number)
-        while number > origin + 50:
-            if isDown(F[number - 10:number]) > 8:
-                break
-            number = number - 1
+    # while riseEnd(F[number - 30:number]) < 5:
+    #     if number <= origin:
+    #         number = 0
+    #         flag = 0
+    #         break
+    #     number = number - 1
+    # if flag != 0:
+    #     number = number - 30
+    #     # print(number)
+    #     while number > origin + 50:
+    #         if isDown(F[number - 10:number]) > 8:
+    #             break
+    #         number = number - 1
+    while number < end - 100:
        # if torque[number + 1] - torque[number] > 10 and isRise(torque[number:number + 100]) > 70 and \
-        #     isRise(torque[number + 1:number + 31]) > 20 and slope(torque[number:number + 100]) > 90 and \
-        # if isRise(F[number + 1: number + 31]) > 25 and F[number + 31] - F[number + 1] > 4000 and \
-        #     F[number + 1] - F[number] < 0 and torque[number + 1] - torque[number] > 10:
-        #     break
-        # else:
-        #     number = number + 1
+       #      isRise(torque[number + 1:number + 31]) > 20 and slope(torque[number:number + 100]) > 90 and \
+        if F[number + 1] - F[number] > 50:
+            break
+        else:
+            number = number + 1
     return number
 
 
@@ -564,7 +568,7 @@ def stable(begin, length, torque):
             end = end + 1
     stable = []
     stable.append(number)
-    stable.append(end)
+    stable.append(end + 1)
     return stable
 # if '__name__' == '__main__':
 # rf = RF()
