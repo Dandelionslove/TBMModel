@@ -122,13 +122,7 @@
 						<el-tab-pane label="文档输入" name="second">
 							<el-row>
 								<el-col :span="4">
-									<el-upload
-										class="upload-doc"
-										:on-error="handleZipUpload"
-										accept=".zip"
-										:limit="1"
-										action
-									>
+									<el-upload class="upload-doc" :on-error="handleZipUpload" accept=".zip" :limit="1" action>
 										<el-button type="success" round>上传文档(zip)</el-button>
 									</el-upload>
 								</el-col>
@@ -254,8 +248,10 @@ export default {
 					var testTableColumnPropRow = {};
 					var temp = csvarry[i].split(",");
 					for (var j = 0; j < temp.length; j++) {
-						dataRow[headers[j]] = temp[j];
-						if (i == 1 && headers[j] != "F" && headers[j] != "T") {
+						if (headers[j] != "index") {
+							dataRow[headers[j]] = temp[j];
+						}
+						if (i == 1 && headers[j] != "F" && headers[j] != "T" && headers[j] != "index") {
 							testTableColumnPropRow[headers[j]] = "1";
 						}
 					}
@@ -313,31 +309,39 @@ export default {
 			var tableToBeSubmited = this.modelTestRandomShowingData.map(
 				this.modifyTableDataToBeSubmited
 			);
+			let t = this;
 			this.$axios({
 				url: "http://127.0.0.1:8000/api/RF_batch",
-				methods: "post",
+				methods: "get",
 				params: {
-					data: tableToBeSubmited
+					data: JSON.stringify(tableToBeSubmited)
 				}
 			})
 				.then(res => {
+					// 异步
+					var resultList = res["data"];
+
+					console.log(resultList);
 					//给modelTestRandomShowingData加2列
+					var temp = [];
+					this.modelTestRandomShowingData.forEach((value, index) => {
+						temp[index] = value;
+						temp[index]["F_predict"] = resultList[index][0];
+						temp[index]["T_predict"] = resultList[index][1];
+					});
+									
+					this.$message({
+						message: "结果已出",
+						type: "success"
+					});
+					t.modelTestRandomShowingData = temp;
 				})
 				.catch(err => {
 					alert(err);
 				});
-			var temp = [];
-			this.modelTestRandomShowingData.forEach(function(value, index) {
-				console.log(index);
-
-				temp[index] = value;
-				temp[index]["F_predict"] = 100;
-				temp[index]["T_predict"] = 100;
-			});
-			this.modelTestRandomShowingData = temp;
 		},
 		modifyTableDataToBeSubmited: function(value, index, array) {
-			var dataRow = {};
+			var dataRow = [];
 			for (var key in value) {
 				if (
 					key == "F" ||
@@ -346,7 +350,7 @@ export default {
 					key == "T_predict"
 				)
 					continue;
-				dataRow[key] = value[key];
+				dataRow.push(value[key]);
 			}
 			return dataRow;
 		},
@@ -367,11 +371,13 @@ export default {
 				params: {
 					data: this.zip
 				}
-			}).then(res => {
-				alert(res);
-			}).catch(err => {
-				alert(err);
 			})
+				.then(res => {
+					alert(res);
+				})
+				.catch(err => {
+					alert(err);
+				});
 		},
 		// handleModelApplyBatchSubmit: function() {
 		// 	if (this.modelApplyAllData.length == 0) {
@@ -420,6 +426,10 @@ export default {
 				.then(res => {
 					this.MaunalResult[0].value = res.data[0];
 					this.MaunalResult[1].value = res.data[1];
+					this.$message({
+						message: "结果已出",
+						type: "success"
+					});
 				})
 				.catch(err => {
 					alert(err);
@@ -449,14 +459,11 @@ export default {
 		// },
 
 		tableRowClassName({ row, rowIndex }) {
-			if (rowIndex === 5) {
-				return "warning-row";
+			if (row["grade_predict"] == null) return "";
+			if (row["grade"] == row["grade_predict"]) {
+				return "success-row";
 			}
-			// } else if (rowIndex === 3) {
-			// 	return "success-row";
-			// }
-			return "success-row";
-			return "";
+			return "warning-row";
 		},
 
 		handleExceed: function() {}

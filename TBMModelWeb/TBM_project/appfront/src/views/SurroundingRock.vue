@@ -58,7 +58,7 @@
 							:label="key"
 						></el-table-column>
 						<el-table-column fixed="right" prop="grade" label="实际结果"></el-table-column>
-						<el-table-column fixed="right" prop="predict_grade" label="测试结果"></el-table-column>
+						<el-table-column fixed="right" prop="grade_predict" label="测试结果"></el-table-column>
 					</el-table>
 				</el-tab-pane>
 				<el-tab-pane label="模型使用" width="100%">
@@ -115,13 +115,7 @@
 						<el-tab-pane label="文档输入" name="second">
 							<el-row>
 								<el-col :span="4">
-									<el-upload
-										class="upload-doc"
-										:on-error="handleZipUpload"
-										accept=".zip"
-										:limit="1"
-										action
-									>
+									<el-upload class="upload-doc" :on-error="handleZipUpload" accept=".zip" :limit="1" action>
 										<el-button type="success" round>上传文档(zip)</el-button>
 									</el-upload>
 								</el-col>
@@ -188,6 +182,13 @@
 	width: 40%;
 	margin: auto;
 }
+.el-table .warning-row {
+	background: rgb(240, 174, 174);
+}
+
+.el-table .success-row {
+	background: #f0f9eb;
+}
 </style>
 
 <script>
@@ -207,17 +208,17 @@ export default {
 				}
 			],
 			ManualForm: {
-				cutterHeadRunTimeMean: "",
-				shoePressureMean: "",
-				cutterHeadSpeedMean: "",
-				shoePumpPressureMean: "",
-				leftShoePitchAngleMean: "",
-				controlPumpPressureMean: "",
-				RightShoePitchAngleMean: "",
-				leftShoeRollAngleMean: "",
-				leftShoeCylinderStrokeMean: "",
-				RightShoeRollAngleMean: "",
-				RightShoeCylinderStrokeMean: ""
+				cutterHeadRunTimeMean: "1",
+				shoePressureMean: "1",
+				cutterHeadSpeedMean: "1",
+				shoePumpPressureMean: "1",
+				leftShoePitchAngleMean: "1",
+				controlPumpPressureMean: "1",
+				RightShoePitchAngleMean: "1",
+				leftShoeRollAngleMean: "1",
+				leftShoeCylinderStrokeMean: "1",
+				RightShoeRollAngleMean: "1",
+				RightShoeCylinderStrokeMean: "1"
 			},
 			imgs: [
 				{ url: require("../assets/adacost1.png"), link: "/content1" },
@@ -225,6 +226,7 @@ export default {
 				{ url: require("../assets/logo.png"), link: "/content3" }
 			],
 			zip: JSZip,
+			modelTestResult: []
 		};
 	},
 
@@ -242,8 +244,10 @@ export default {
 					var testTableColumnPropRow = {};
 					var temp = csvarry[i].split(",");
 					for (var j = 0; j < temp.length; j++) {
-						dataRow[headers[j]] = temp[j];
-						if (i == 1 && headers[j] != "grade") {
+						if (headers[j] != "index") {
+							dataRow[headers[j]] = temp[j];
+						}
+						if (i == 1 && headers[j] != "grade" && headers[j] != "index") {
 							testTableColumnPropRow[headers[j]] = "1";
 						}
 					}
@@ -300,33 +304,43 @@ export default {
 			var tableToBeSubmited = this.modelTestRandomShowingData.map(
 				this.modifyTableDataToBeSubmited
 			);
+			let t = this;
+			var resultList = [];
+
 			this.$axios({
 				url: "http://127.0.0.1:8000/api/AC_batch",
-				methods: "post",
+				methods: "get",
 				params: {
-					data: tableToBeSubmited
+					data: JSON.stringify(tableToBeSubmited)
 				}
 			})
 				.then(res => {
-					//给modelTestRandomShowingData加一列
+					// 异步
+					resultList = res["data"];
+					//给modelTestRandomShowingData加一列结果
+					var temp = [];
+					// console.log(resultList);
+					this.modelTestRandomShowingData.forEach((value, index) => {
+						temp[index] = value;
+						temp[index]["grade_predict"] = resultList[index];
+					});
+					this.$message({
+						message: "结果已出",
+						type: "success"
+					});
+					t.modelTestRandomShowingData = temp;
 				})
 				.catch(err => {
 					alert(err);
 				});
-			var temp = [];
-			this.modelTestRandomShowingData.forEach(function(value, index) {
-				console.log(index);
 
-				temp[index] = value;
-				temp[index]["grade_predict"] = 100;
-			});
-			this.modelTestRandomShowingData = temp;
+			// console.log(this.modelTestRandomShowingData);
 		},
 		modifyTableDataToBeSubmited: function(value, index, array) {
-			var dataRow = {};
+			var dataRow = [];
 			for (var key in value) {
 				if (key == "grade" || key == "grade_predict") continue;
-				dataRow[key] = value[key];
+				dataRow.push(value[key]);
 			}
 			return dataRow;
 		},
@@ -348,11 +362,13 @@ export default {
 				params: {
 					data: this.zip
 				}
-			}).then(res => {
-				alert(res);
-			}).catch(err => {
-				alert(err);
 			})
+				.then(res => {
+					alert(res);
+				})
+				.catch(err => {
+					alert(err);
+				});
 		},
 		// handleModelApplyBatchSubmit: function() {
 		// 	if (this.modelApplyAllData.length == 0) {
@@ -392,13 +408,18 @@ export default {
 		handleModelApplyManualSubmit: function() {
 			this.$axios({
 				url: "http://127.0.0.1:8000/api/AC_para",
-				methods: "post",
+				methods: "get",
 				params: {
 					data: this.ManualForm
 				}
 			})
 				.then(res => {
-					this.MaunalResult[0].value = res[0];
+					// console.log(res["data"]);
+					this.MaunalResult[0].value = res["data"][0];
+					this.$message({
+						message: "结果已出",
+						type: "success"
+					});
 				})
 				.catch(err => {
 					alert(err);
@@ -426,14 +447,11 @@ export default {
 		// },
 
 		tableRowClassName({ row, rowIndex }) {
-			if (rowIndex === 5) {
-				return "warning-row";
+			if (row["grade_predict"] == null) return "";
+			if (row["grade"] == row["grade_predict"]) {
+				return "success-row";
 			}
-			// } else if (rowIndex === 3) {
-			// 	return "success-row";
-			// }
-			return "success-row";
-			return "";
+			return "warning-row";
 		},
 
 		handleExceed: function() {}
