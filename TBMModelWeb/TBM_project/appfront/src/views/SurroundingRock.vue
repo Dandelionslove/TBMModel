@@ -426,10 +426,11 @@ export default {
 		},
 
 		handleModelApplyUpload: function(err, obj, fileList) {
+			let _this = this;
 			var reader = new FileReader();
 			reader.readAsText(obj.raw);
-			reader.onload = function (evt) {
-				this.modelApplyAllData = evt.target.result;
+			reader.onload = function () {
+				_this.modelApplyAllData = this.result.substr(0, this.result.length/4);
 			};
 			// var reader = new FileReader();
 			// reader.readAsText(obj.raw);
