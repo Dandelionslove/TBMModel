@@ -9,11 +9,11 @@ import matplotlib.pyplot as plt
 # 存放txt数据的文件夹
 txtAddress = '../txtData'
 # 存放预处理数据的文件夹
-preDataAddress = './TBMPreproData'
+preDataAddress = '../../TBMPreproData'
 # 存放zip压缩包的文件夹
-zipAddress = './Data'
+zipAddress = '../../Data'
 # 围岩等级表地址
-rockFormAddress = './TBMData/围岩等级信息统计表-现场工程师统计.xlsx'
+rockFormAddress = '../TBMData/围岩等级信息统计表-现场工程师统计.xlsx'
 # 存放可视化图片
 picDirAddress = '../../DataPic'
 
@@ -21,7 +21,7 @@ picDirAddress = '../../DataPic'
 class RF:
     def __init__(self):
         # 存放预处理数据地址
-        self.dataPath = './TBMDrivingParameters'  # preDataAddress#
+        self.dataPath = 'data1'  # preDataAddress#
         # 预处理数据文件名
         self.DataFileName = 'train.csv'  # 'allIndexRF.csv'#
         # Address为存放txt文件夹相对于DataPreprocessing.py的路径
@@ -573,5 +573,5 @@ def stable(begin, length, torque):
 # if '__name__' == '__main__':
 # rf = RF()
 # rf.RFData()
-# adaCost = AdaCost()
+# adaCost = AdaCost
 # adaCost.adaCostData()

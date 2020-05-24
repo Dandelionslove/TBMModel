@@ -1,5 +1,4 @@
-from DataPreprocessing import AllUnZip
-from DataPreprocessing import AdaCost
-AllUnZip()
-adaCost = AdaCost()
+import Dp
+# AllUnZip()
+adaCost = Dp.AdaCost()
 adaCost.adaCostData()
