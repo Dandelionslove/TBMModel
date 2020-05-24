@@ -12,7 +12,7 @@ import os
 import sys
 import pickle
 import numpy as np
-import Dp
+import TBM_project.myapp.Dp as dpp
 import pandas as pd
 
 def adaCost(sample):
@@ -67,7 +67,7 @@ def RF3(request):
     w=json.loads(request.GET['data'])
     file_handle = open('../txtData/1.txt', mode='w')
     file_handle.write(w)
-    rf = Dp.RF()
+    rf = dpp.RF()
     rf.RFData()
     d=[float(pd.read_csv('data1/train.csv',usecols=['总推进力均值']).values[0][0]),
        float(pd.read_csv('data1/train.csv', usecols=['总推进力方差']).values[0][0]),
@@ -125,7 +125,7 @@ def AC3(request):
     w=json.loads(request.GET['data'])
     file_handle = open('../txtData/1.txt', mode='w')
     file_handle.write(w)
-    rf = Dp.AdaCost()
+    rf = dpp.AdaCost()
     rf.adaCostData()
     d=[float(pd.read_csv('data2/adaCostPreData.csv',usecols=['刀盘运行时间均值']).values[0][0]),
        float(pd.read_csv('data2/adaCostPreData.csv', usecols=['撑靴压力均值']).values[0][0]),
