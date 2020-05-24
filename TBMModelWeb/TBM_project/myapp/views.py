@@ -12,7 +12,8 @@ import os
 import sys
 import pickle
 import numpy as np
-
+import Dp
+import pandas as pd
 
 def adaCost(sample):
     # 可以接受（样本数X特征数）这样的二维ndarray，也可以接受只有一个样本的一维数组（会自动转换为只有一行的二维数组）
@@ -63,13 +64,33 @@ def RF2(request):
 @require_http_methods(["GET"])
 def RF3(request):
     response = {}
-    try:
-        response['result'] = int(request.GET['i']) - int(request.GET['j'])
-        response['res'] = "结果1"
-        response['error_num'] = 10
-    except Exception as e:
-        response['msg'] = str(e)
-        response['error_num'] = 1
+    w=json.loads(request.GET['data'])
+    file_handle = open('../txtData/1.txt', mode='w')
+    file_handle.write(w)
+    rf = Dp.RF()
+    rf.RFData()
+    d=[float(pd.read_csv('data1/train.csv',usecols=['总推进力均值']).values[0][0]),
+       float(pd.read_csv('data1/train.csv', usecols=['总推进力方差']).values[0][0]),
+       float(pd.read_csv('data1/train.csv', usecols=['刀盘功率均值']).values[0][0]),
+       float(pd.read_csv('data1/train.csv', usecols=['刀盘功率方差']).values[0][0]),
+       float(pd.read_csv('data1/train.csv', usecols=['刀盘扭矩均值']).values[0][0]),
+       float(pd.read_csv('data1/train.csv', usecols=['刀盘扭矩方差']).values[0][0]),
+       float(pd.read_csv('data1/train.csv', usecols=['推进速度均值']).values[0][0]),
+       float(pd.read_csv('data1/train.csv', usecols=['推进速度方差']).values[0][0]),
+       float(pd.read_csv('data1/train.csv', usecols=['刀盘速度给定均值']).values[0][0]),
+       float(pd.read_csv('data1/train.csv', usecols=['刀盘速度给定方差']).values[0][0]),
+       float(pd.read_csv('data1/train.csv', usecols=['刀盘转速均值']).values[0][0]),
+       float(pd.read_csv('data1/train.csv', usecols=['刀盘转速方差']).values[0][0]),
+       float(pd.read_csv('data1/train.csv', usecols=['稳定段刀盘转速均值']).values[0][0]),
+       float(pd.read_csv('data1/train.csv', usecols=['稳定段推进速度均值']).values[0][0]),
+       float(pd.read_csv('data1/train.csv', usecols=['稳定段刀盘扭矩均值']).values[0][0]),
+       float(pd.read_csv('data1/train.csv', usecols=['稳定段总推进力均值']).values[0][0]),
+       ]
+    print(d)
+    res = RF_CART([d])
+    data = [res[0][0], res[1][0]]
+    response['prepro']=d
+    response['result']=data
     return JsonResponse(response)
 
 
@@ -101,11 +122,27 @@ def AC2(request):
 @require_http_methods(["GET"])
 def AC3(request):
     response = {}
-    try:
-        response['result'] = int(request.GET['i']) - int(request.GET['j'])
-        response['res'] = "结果1"
-        response['error_num'] = 10
-    except Exception as e:
-        response['msg'] = str(e)
-        response['error_num'] = 1
+    w=json.loads(request.GET['data'])
+    file_handle = open('../txtData/1.txt', mode='w')
+    file_handle.write(w)
+    rf = Dp.AdaCost()
+    rf.adaCostData()
+    d=[float(pd.read_csv('data2/adaCostPreData.csv',usecols=['刀盘运行时间均值']).values[0][0]),
+       float(pd.read_csv('data2/adaCostPreData.csv', usecols=['撑靴压力均值']).values[0][0]),
+       float(pd.read_csv('data2/adaCostPreData.csv', usecols=['刀盘转速均值']).values[0][0]),
+       float(pd.read_csv('data2/adaCostPreData.csv', usecols=['撑靴泵压力均值']).values[0][0]),
+       float(pd.read_csv('data2/adaCostPreData.csv', usecols=['左撑靴俯仰角均值']).values[0][0]),
+       float(pd.read_csv('data2/adaCostPreData.csv', usecols=['控制泵压力均值']).values[0][0]),
+       float(pd.read_csv('data2/adaCostPreData.csv', usecols=['右撑靴俯仰角均值']).values[0][0]),
+       float(pd.read_csv('data2/adaCostPreData.csv', usecols=['左撑靴滚动角均值']).values[0][0]),
+       float(pd.read_csv('data2/adaCostPreData.csv', usecols=['左撑靴油缸行程检测均值']).values[0][0]),
+       float(pd.read_csv('data2/adaCostPreData.csv', usecols=['右撑靴滚动角均值']).values[0][0]),
+       float(pd.read_csv('data2/adaCostPreData.csv', usecols=['右撑靴油缸行程检测均值']).values[0][0]),
+       ]
+    print(d)
+
+    w = np.array(d)
+    data = adaCost(w)
+    response['prepro']=d
+    response['result']=data
     return JsonResponse(response)

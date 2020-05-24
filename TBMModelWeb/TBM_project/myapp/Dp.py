@@ -9,11 +9,11 @@ import matplotlib.pyplot as plt
 # 存放txt数据的文件夹
 txtAddress = '../txtData'
 # 存放预处理数据的文件夹
-preDataAddress = '../../TBMPreproData'
+preDataAddress = 'data2'
 # 存放zip压缩包的文件夹
 zipAddress = '../../Data'
 # 围岩等级表地址
-rockFormAddress = '../TBMData/围岩等级信息统计表-现场工程师统计.xlsx'
+rockFormAddress = 'TBMData/围岩等级信息统计表-现场工程师统计.xlsx'
 # 存放可视化图片
 picDirAddress = '../../DataPic'
 

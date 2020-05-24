@@ -2,7 +2,6 @@ import joblib
 import os
 import sys
 
-
 def RF_CART(data):
     path = os.path.abspath(os.path.dirname(sys.argv[0]))
     clf_f = joblib.load(path + '/model/model_f.pkl')
