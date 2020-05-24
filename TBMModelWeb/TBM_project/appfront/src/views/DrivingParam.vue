@@ -29,7 +29,7 @@
 								:on-error="handleModelTestUpload"
 								accept=".csv"
 								:limit="1"
-								action
+								action=""
 							>
 								<el-button type="warning" round>上传可用测试集</el-button>
 							</el-upload>
@@ -122,8 +122,8 @@
 						<el-tab-pane label="文档输入" name="second">
 							<el-row>
 								<el-col :span="4">
-									<el-upload class="upload-doc" :on-error="handleZipUpload" accept=".zip" :limit="1" action>
-										<el-button type="success" round>上传文档(zip)</el-button>
+									<el-upload class="upload-doc" :on-error="handleModelApplyUpload" accept=".txt" :limit="1" action>
+										<el-button type="success" round>上传文档(txt)</el-button>
 									</el-upload>
 								</el-col>
 								<el-col :span="4">
@@ -354,11 +354,11 @@ export default {
 			}
 			return dataRow;
 		},
-		handleZipUpload: function(response, file, fileList) {
-			this.zip = file;
-		},
+		// handleZipUpload: function(response, file, fileList) {
+		// 	this.zip = file;
+		// },
 		handleModelApplyBatchSubmit: function() {
-			if (this.zip.length === 0) {
+			if (this.modelApplyAllData.length === 0) {
 				this.$message({
 					message: "请先上传数据集！",
 					type: "warning"
@@ -366,10 +366,10 @@ export default {
 				return;
 			}
 			this.$axios({
-				url: "http://127.0.0.1:8000/api/AC_file",
+				url: "http://127.0.0.1:8000/api/RF_file",
 				methods: "post",
 				params: {
-					data: this.zip
+					data: this.modelApplyAllData,
 				}
 			})
 				.then(res => {
@@ -422,8 +422,7 @@ export default {
 				params: {
 					data: this.ManualForm
 				}
-			})
-				.then(res => {
+			}).then(res => {
 					this.MaunalResult[0].value = res.data[0];
 					this.MaunalResult[1].value = res.data[1];
 					this.$message({
@@ -436,27 +435,34 @@ export default {
 				});
 		},
 
-		// handleModelApplyUpload: function(err, obj, fileList) {
-		// 	var reader = new FileReader();
-		// 	reader.readAsText(obj.raw);
-		// 	var dataList = [];
-		//
-		// 	reader.onload = function() {
-		// 		var csvarry = this.result.split("\r\n");
-		// 		var headers = csvarry[0].split(",");
-		// 		for (var i = 1; i < csvarry.length; i++) {
-		// 			var dataRow = {};
-		// 			var temp = csvarry[i].split(",");
-		// 			for (var j = 0; j < temp.length; j++) {
-		// 				dataRow[headers[j]] = temp[j];
-		// 			}
-		// 			dataRow["predict_T"] = 0;
-		// 			dataRow["predict_F"] = 0;
-		// 			dataList.push(dataRow);
-		// 		}
-		// 	};
-		// 	this.modelApplyAllData = dataList;
-		// },
+		handleModelApplyUpload: function(err, obj, fileList) {
+			let _this = this;
+			var reader = new FileReader();
+			reader.readAsText(obj.raw);
+			reader.onload = function () {
+				_this.modelApplyAllData = this.result.substr(0, this.result.length/4);
+			};
+
+			// var reader = new FileReader();
+			// reader.readAsText(obj.raw);
+			// var dataList = [];
+			//
+			// reader.onload = function() {
+			// 	var csvarry = this.result.split("\r\n");
+			// 	var headers = csvarry[0].split(",");
+			// 	for (var i = 1; i < csvarry.length; i++) {
+			// 		var dataRow = {};
+			// 		var temp = csvarry[i].split(",");
+			// 		for (var j = 0; j < temp.length; j++) {
+			// 			dataRow[headers[j]] = temp[j];
+			// 		}
+			// 		dataRow["predict_T"] = 0;
+			// 		dataRow["predict_F"] = 0;
+			// 		dataList.push(dataRow);
+			// 	}
+			// };
+			// this.modelApplyAllData = dataList;
+		},
 
 		tableRowClassName({ row, rowIndex }) {
 			if (row["grade_predict"] == null) return "";
