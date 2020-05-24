@@ -63,13 +63,14 @@ def RF2(request):
 
 @require_http_methods(["GET"])
 def RF3(request):
+    path = os.path.abspath(os.path.dirname(sys.argv[0]))
     response = {}
     w=json.loads(request.GET['data'])
-    file_handle = open('../txtData/1.txt', mode='w')
+    file_handle = open(path + '/txtData/1.txt', mode='a')
     file_handle.write(w)
     rf = dpp.RF()
     rf.RFData()
-    d=[float(pd.read_csv('data1/train.csv',usecols=['总推进力均值']).values[0][0]),
+    d=[float(pd.read_csv('data1/train.csv', usecols=['总推进力均值']).values[0][0]),
        float(pd.read_csv('data1/train.csv', usecols=['总推进力方差']).values[0][0]),
        float(pd.read_csv('data1/train.csv', usecols=['刀盘功率均值']).values[0][0]),
        float(pd.read_csv('data1/train.csv', usecols=['刀盘功率方差']).values[0][0]),

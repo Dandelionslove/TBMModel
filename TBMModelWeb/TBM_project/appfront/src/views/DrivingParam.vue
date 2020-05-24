@@ -368,9 +368,9 @@ export default {
 
 			this.$axios({
 				url: "http://127.0.0.1:8000/api/RF_file",
-				methods: "post",
+				methods: "get",
 				params: {
-					data: dataArray,
+					data: JSON.stringify(this.modelApplyAllData[0]),
 				}
 			})
 				.then(res => {
