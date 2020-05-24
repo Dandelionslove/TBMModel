@@ -365,11 +365,12 @@ export default {
 				});
 				return;
 			}
+
 			this.$axios({
 				url: "http://127.0.0.1:8000/api/RF_file",
 				methods: "post",
 				params: {
-					data: this.modelApplyAllData,
+					data: dataArray,
 				}
 			})
 				.then(res => {
@@ -436,13 +437,19 @@ export default {
 		},
 
 		handleModelApplyUpload: function(err, obj, fileList) {
-			let _this = this;
-			var reader = new FileReader();
+			// let _this = this;
+			// var reader = new FileReader();
+			// reader.readAsText(obj.raw);
+			// reader.onload = function () {
+			// 	_this.modelApplyAllData = this.result.substr(0, this.result.length/4);
+			// };
+			let reader = new FileReader();
 			reader.readAsText(obj.raw);
-			reader.onload = function () {
-				_this.modelApplyAllData = this.result.substr(0, this.result.length/4);
+			let _this = this;
+			reader.onload = function() {
+				let substr = this.result.substr(0, this.result.length/4);
+				_this.modelApplyAllData = substr.split("\r\n");
 			};
-
 			// var reader = new FileReader();
 			// reader.readAsText(obj.raw);
 			// var dataList = [];
