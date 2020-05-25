@@ -27,7 +27,7 @@ class RF:
         # Address为存放txt文件夹相对于DataPreprocessing.py的路径
         self.Address = txtAddress
         # RFIndex为RF需要使用数据的列索引，即参数名称
-        self.RFIndex = ['总推进力', '刀盘功率', '刀盘扭矩', '推进速度', '刀盘速度给定', '刀盘转速']
+        self.RFIndex = ['总推进力', '刀盘功率', '刀盘扭矩', '推进速度', '刀盘速度给定', '刀盘转速', '推进位移']
         # RFStableIndex为稳定段所需数据的列索引
         self.RFStableIndex = ['刀盘转速', '推进速度', '刀盘扭矩', '总推进力']
         self.resultList = []
@@ -38,33 +38,55 @@ class RF:
         for date in self.dataDict:
             data = self.dataDict[date]
             # self.RFIndex = list(data.keys())
-            torque = getEMA(data['刀盘扭矩'].values)
-            F = getEMA(data['总推进力'].values)
+            torque = data['刀盘扭矩'].values
             result = {}
             stableList = []
             i = 0
-            while i < len(torque) - 101:
-
+            while i < len(torque):
+                # 取单个循环段
                 origin = i
-                while origin < len(torque) - 100:
-                    if torque[origin] > 100:
+                while origin < len(torque):
+                    if torque[origin] > 5:
                         break
                     origin = origin + 1
+
+                if origin == len(torque):
+                    break
+
                 number = origin
                 n = 0
                 while number < len(torque):
-                    if torque[number] < 100:
+                    if torque[number] > 5:
                         n = n + 1
-                    if n > 50:
+                    else:
                         break
                     number = number + 1
-                end = number
-                if np.mean(torque[origin:end]) < 100:
-                    i = end + 1
+
+                if number == len(torque):
+                    break
+
+                end = number - 1
+
+                i = end + 1
+
+                index = self.RFStableIndex
+                x = errorHandle(data[origin:end + 2], index)
+                if x[1] == 0:
                     continue
-                plt.plot(torque, color='blue', label='T')
+                else:
+                    dataNonOutliers = x[0]
+
+                torque = dataNonOutliers['刀盘扭矩'].values
+                F = dataNonOutliers['总推进力'].values
+                speed = dataNonOutliers['推进速度'].values
+
+                # #筛去不符合循环段的数据
+                # if torque[origin:end].mean() < 400:
+                #     continue
+                #
+                # plt.plot(torque, color='blue', label='T')
                 # plt.plot(F, color='green', label='F')
-                # plt.plot(getEMA(data['推进速度'].values), color='red', label='S')
+                # plt.plot(speed, color='red', label='S')
                 #
                 # # 设置图标标题
                 # plt.legend()
@@ -88,59 +110,68 @@ class RF:
                 # plt.savefig(picFilePath)
                 # # 清空缓存
                 # plt.close()
-                #为1取该循环段数据，为0删去
+                # 为1取该循环段数据，为0删去
                 flag = 1
-                riseNum = rise(origin, end, torque, F)
-                stableList = stable(riseNum, end, torque)
 
+                stableList = stable(speed)
 
+                if stableList[0] < 40:
+                    continue
+                # riseNum = rise(origin, end, torque, F)
+                #
+                # if riseNum == 0:
+                #     flag = 0
+                # else:
+                # result = self.calculateRise(data, riseNum)
 
+                stableF = self.findFStable(F)
 
-                if riseNum == 0:
-                    flag = 0
-                else:
-                    result = self.calculateRise(data, riseNum)
+                riseNum = rise(torque, stableF, stableList[0])
 
+                for index in self.RFIndex:
+                    if index != '推进位移':
+                        riseList = self.calculateRise(dataNonOutliers[index].values, riseNum)
+                        result[index + '均值'] = riseList[0]
+                        result[index + '方差'] = riseList[1]
+
+                dataValues = calculateStable(dataNonOutliers[int(stableList[0]):int(stableList[1] + 1)]
+                                             , self.RFStableIndex)
 
                 for index in self.RFStableIndex:
-                    result['稳定段' + index + '均值'] = calculateStable(stableList[0], getEMA(data[index].values),
-                                                                   stableList[1])
-                i = end
-                i = i + 1
+                    result['稳定段' + index + '均值'] = np.mean(dataValues[index].values)
 
-
-                # 当数据中有任意为0时筛去该循环段数据
-                for x in result:
-                    if result[x] == 0:
-                        flag = 0
-                        # print(1)
-                        # picName = date[10:-4] + ':' + str(origin) + '~' + str(end) + '.png'
-                        # print(picName)
-                        # print('上升段' + str(riseNum) + '~' + str(riseNum + 30))
-                        # print('稳定段' + str(stableList[0]) + '~' + str(stableList[1]))
-                        break
-
-                # 当稳定段刀盘扭矩值小于500时筛去该循环段数据。因为可能存在稳定段平稳略大于0的情况
-                if np.mean(torque[stableList[0]:stableList[1]]) < 500:
-                    # print(2)
-                    # picName = date[10:-4] + ':' + str(origin) + '~' + str(end) + '.png'
-                    # print(picName)
-                    # print('上升段' + str(riseNum) + '~' + str(riseNum + 30))
-                    # print('稳定段' + str(stableList[0]) + '~' + str(stableList[1]))
-                    flag = 0
-
-                # # 当稳定段起点与上升段第30s距离超过600s时舍去。
-                # if stableList[0] - riseNum - 30 > 600:
+                # # 当数据中有任意为0时筛去该循环段数据
+                # for x in result:
+                #     if result[x] == 0:
+                #         flag = 0
+                #         # print(1)
+                #         # picName = date[10:-4] + ':' + str(origin) + '~' + str(end) + '.png'
+                #         # print(picName)
+                #         # print('上升段' + str(riseNum) + '~' + str(riseNum + 30))
+                #         # print('稳定段' + str(stableList[0]) + '~' + str(stableList[1]))
+                #         break
+                #
+                # # 当稳定段刀盘扭矩值小于500时筛去该循环段数据。因为可能存在稳定段平稳略大于0的情况
+                # if np.mean(torque[stableList[0]:stableList[1]]) < 500:
+                #     # print(2)
+                #     # picName = date[10:-4] + ':' + str(origin) + '~' + str(end) + '.png'
+                #     # print(picName)
+                #     # print('上升段' + str(riseNum) + '~' + str(riseNum + 30))
+                #     # print('稳定段' + str(stableList[0]) + '~' + str(stableList[1]))
                 #     flag = 0
-
-                # 当稳定段数据少于50时，筛去该循环段数据，因为可能存在只有两个点的情况
-                if stableList[1] - stableList[0] < 50:
-                    # print(3)
-                    # picName = date[10:-4] + ':' + str(origin) + '~' + str(end) + '.png'
-                    # print(picName)
-                    # print('上升段' + str(riseNum) + '~' + str(riseNum + 30))
-                    # print('稳定段' + str(stableList[0]) + '~' + str(stableList[1]))
-                    flag = 0
+                #
+                # # # 当稳定段起点与上升段第30s距离超过600s时舍去。
+                # # if stableList[0] - riseNum - 30 > 600:
+                # #     flag = 0
+                #
+                # # 当稳定段数据少于50时，筛去该循环段数据，因为可能存在只有两个点的情况
+                # if stableList[1] - stableList[0] < 50:
+                #     # print(3)
+                #     # picName = date[10:-4] + ':' + str(origin) + '~' + str(end) + '.png'
+                #     # print(picName)
+                #     # print('上升段' + str(riseNum) + '~' + str(riseNum + 30))
+                #     # print('稳定段' + str(stableList[0]) + '~' + str(stableList[1]))
+                #     flag = 0
 
                 # if isRise(torque[riseNum:riseNum + 31]) < 20:
                 #     print(4)
@@ -158,17 +189,17 @@ class RF:
                     self.resultList.append(result)
                     # # plot根据列表绘制出有意义的图形
                     # plt.plot(torque, color='blue', label='T')
-                    # plt.plot(getEMA(data['总推进力'].values), color='green', label='F')
-                    # plt.plot(getEMA(data['推进速度'].values), color='red', label='S')
+                    # plt.plot(F, color='green', label='F')
+                    # plt.plot(speed, color='red', label='S')
                     # plt.axvline(x=riseNum, ls="-", lw=1, c="black", label='Rise')  # 添加垂直直线
-                    # plt.axvline(x=riseNum + 30, ls="-", lw=1, c="black")
+                    # plt.axvline(x=riseNum + 29, ls="-", lw=1, c="black")
                     # plt.axvline(x=stableList[0], ls="-", lw=1, c="purple", label='Stable')
                     # plt.axvline(x=stableList[1], ls="-", lw=1, c="purple")
                     #
                     # # 设置图标标题
                     # plt.legend()
                     # plt.title(date, fontsize=24)
-                    # plt.xlim([origin, end])
+                    # # plt.xlim([origin, end])
                     # # 设置坐标轴标签
                     # plt.xlabel("time/s")
                     # plt.ylabel("")
@@ -181,8 +212,8 @@ class RF:
                     #     os.makedirs(picDirPath)
                     # picName = date[10:-4] + ':' + str(origin) + '~' + str(end) + '.png'
                     # print(picName)
-                    # print('上升段' + str(riseNum) + '~' + str(riseNum + 30))
-                    # print('稳定段' + str(stableList[0]) + '~' + str(stableList[1]))
+                    # print('上升段' + str(riseNum + origin) + '~' + str(riseNum + origin + 29))
+                    # print('稳定段' + str(stableList[0] + origin) + '~' + str(stableList[1] + origin))
                     # # 预处理文件路径
                     # picFilePath = os.path.join(picDirPath, picName)
                     # # 生成图片
@@ -200,19 +231,61 @@ class RF:
 
         # return df
 
-    # 判断上升段，并选取上升段数据
-    def calculateRise(self, data, number):
-        result = {}
-        for name in self.RFIndex:
-            info = data[name].values
-            info = getEMA(info[number + 1:number + 31])
-            mean = info.mean()
-            var = info.var()
-            result[name + '均值'] = mean
-            if name in ['总推进力', '刀盘功率', '刀盘扭矩', '推进速度', '刀盘速度给定', '刀盘转速']:
-                result[name + '方差'] = var
+    def findFStable(self, F):
+        l = len(F)
+        b = np.zeros((l - 11, 3))
+        for j in range(10, l - 11):
+            b[j, 1] = np.mean(F[j - 10:j + 11])
+        for j in range(l - 11):
+            b[j, 2] = j
 
-        return result
+        c = b[np.lexsort(-b[:, ::-1].T)]
+        c0 = np.nonzero(c[:, 1])
+
+        if len(c0[0]) != 0:
+
+            c1 = c[0: max(c0[0]) + 1]
+
+            p = np.polyfit(b[15:max(c0[0]) + 16, 2], c1[:, 1], 20)
+
+            y1 = np.polyval(p, b[:, 2])
+
+            ddd = np.diff(y1, 2)
+
+            st = np.std(ddd[round(0.2 * l):round(0.5 * l)])
+            ma = max(ddd[round(0.2 * l):round(0.5 * l)]) + 3 * st
+            mi = min(ddd[round(0.2 * l):round(0.5 * l)]) - 3 * st
+
+            t = np.where((ddd < mi) | (ddd > ma))
+
+            for j in range(len(t)):
+                if t[0][j] < round(0.4 * l):
+                    t[0][j] = l
+
+            I = min(t[0])
+
+            if c[I, 2] > len(b) - 2:
+                yuzhi = b[c[I, 2], 1]
+            else:
+                yuzhi = b[int(c[I, 2] + 2), 1]
+
+            sta = []
+            for i in range(len(b)):
+                if b[i, 1] >= yuzhi:
+                    sta.append(b[i, 2])
+
+            begin = min(sta)
+
+            return begin
+
+    # 判断上升段，并选取上升段数据
+    def calculateRise(self, dataValue, number):
+
+        info = dataValue[number:number + 30]
+        mean = np.mean(info)
+        var = np.var(info)
+
+        return [mean, var]
 
 
 class AdaCost:
@@ -220,13 +293,13 @@ class AdaCost:
         # 预处理数据文件名
         self.DataFileName = 'adaCostPreData.csv'  # 'allIndexAdaCost.csv'#'
         # AdaCostIndex为adacost需要使用数据的列索引，即参数名称，额外加入刀盘扭矩判断上升段与稳定段
-        self.AdaCostIndex = ['桩号', '刀盘运行时间', '撑靴压力', '刀盘扭矩', '刀盘转速', '撑靴泵压力', '左撑靴俯仰角', '控制泵压力',
-                             '右撑靴俯仰角', '左撑靴滚动角', '左撑靴油缸行程检测', '右撑靴滚动角',
-                             '右撑靴油缸行程检测']  # , '刀盘转速电位器值设定值'
+        self.AdaCostIndex0 = ['桩号', '刀盘运行时间', '撑靴压力', '刀盘扭矩', '刀盘转速', '撑靴泵压力', '左撑靴俯仰角', '控制泵压力',
+                              '右撑靴俯仰角', '左撑靴滚动角', '左撑靴油缸行程检测', '右撑靴滚动角',
+                              '右撑靴油缸行程检测', '推进位移', '推进速度']  # , '刀盘转速电位器值设定值'
         # Address为存放txt文件夹相对于DataPreprocessing.py的路径
         self.Address = txtAddress
 
-        self.dataDict = AllTxtHandle(self.Address, self.AdaCostIndex)
+        self.dataDict = AllTxtHandle(self.Address, self.AdaCostIndex0)
         self.resultList = []
         # 围岩映射表处理
         self.rockForm = pd.read_excel(transAddress(rockFormAddress))
@@ -238,34 +311,58 @@ class AdaCost:
         for date in self.dataDict:
             data = self.dataDict[date]
             # self.AdaCostIndex = list(data.keys())
-            torque = getEMA(data['刀盘扭矩'].values)
+            torque = data['刀盘扭矩'].values
             i = 0
-            while i < len(torque) - 101:
+            while i < len(torque):
+                # 取单个循环段
                 origin = i
-                while origin < len(torque) - 100:
-                    if torque[origin] > 100:
+                while origin < len(torque):
+                    if torque[origin] > 5:
                         break
                     origin = origin + 1
+
+                if origin == len(torque):
+                    break
+
                 number = origin
                 n = 0
                 while number < len(torque):
-                    if torque[number] < 100:
+                    if torque[number] > 5:
                         n = n + 1
-                    if n > 50:
+                    else:
                         break
                     number = number + 1
-                end = number
-                if np.mean(torque[origin:end]) < 100:
-                    i = end + 1
-                    continue
-                stableList = stable(origin, end, torque)
 
+                if number == len(torque):
+                    break
+
+                end = number - 1
+
+                i = end + 1
+
+                index = self.AdaCostIndex0
+                x = errorHandle(data[origin:end + 2], index)
+                if x[1] == 0:
+                    continue
+                else:
+                    dataNonOutliers = x[0]
+
+                torque = dataNonOutliers['刀盘扭矩'].values
+                speed = dataNonOutliers['推进速度'].values
+                flag = 1
+
+                stableList = stable(speed)
+                Index = ['刀盘运行时间', '撑靴压力', '刀盘转速', '撑靴泵压力', '左撑靴俯仰角', '控制泵压力',
+                         '右撑靴俯仰角', '左撑靴滚动角', '左撑靴油缸行程检测', '右撑靴滚动角', '右撑靴油缸行程检测']
+                dataValues = calculateStable(dataNonOutliers[int(stableList[0]):int(stableList[1] + 1)]
+                                             , Index)
 
                 result = {}
-                for name in self.AdaCostIndex:
-                    if name != '桩号' and name != '刀盘扭矩':
-                        result[name + '均值'] = calculateStable(stableList[0], getEMA(data[name].values), stableList[1])
-                result['围岩等级'] = self.calRockGrade(data['桩号'].values[stableList[0]: stableList[1]])
+                for name in Index:
+                    result[name + '均值'] = np.mean(dataValues[name].values)
+
+                result['围岩等级'] = self.calRockGrade(dataNonOutliers['桩号'].values
+                                                   [int(stableList[0]):int(stableList[1] + 1)])
 
                 i = end
                 i = i + 1
@@ -274,23 +371,6 @@ class AdaCost:
 
                 if result['围岩等级'] < 0:
                     flag = 0
-
-                for x in result:
-                    if result[x] == 0:
-                        flag = 0
-                        break
-
-                if np.mean(torque[stableList[0]:stableList[1]]) < 500:
-                    flag = 0
-
-                # if stableList[0] - riseNum - 30 < 0:
-                #     flag = 0
-
-                if stableList[1] - stableList[0] < 50:
-                    flag = 0
-
-                # if riseNum - origin > 600:
-                #     flag = 0
 
                 if flag == 1:
                     self.resultList.append(result)
@@ -334,11 +414,24 @@ class AdaCost:
 
 
 # 选取稳定段数据
-def calculateStable(origin, rowDataValue, end):
-    rowDataValue = rowDataValue[origin: end + 1]
-    mean = np.mean(rowDataValue)
+def calculateStable(dataValue, index):
+    result = {}
+    toDel = []
+    rowIndex = dataValue.index
+    for i in index:
+        rowDataValue = dataValue[i].values
+        std = np.std(rowDataValue)
+        mean0 = np.mean(rowDataValue)
+        # 判断是否单个数据与平均值差的绝对值大于三倍的标准差，是则记录该行
+        for info in range(len(rowDataValue)):
+            # 记录该行索引值
+            if (rowDataValue[info] - mean0) > (3 * std) or (mean0 - rowDataValue[info]) > (3 * std):
+                if rowIndex[info] not in toDel:
+                    toDel.append(rowIndex[info])
 
-    return mean
+    dataValue.drop(toDel, inplace=True)
+
+    return dataValue
 
 
 # 生成预处理数据文件
@@ -393,18 +486,18 @@ def oneTxtHandle(oneDataAddress, index):
     data_del_lack_row = frame.dropna()
     # 处理误差
     # print(data_del_lack_row)
-    oneTxtData = errorHandle(data_del_lack_row, index)  # data_del_lack_row#
+    oneTxtData = data_del_lack_row  # errorHandle(data_del_lack_row, index)
     return oneTxtData
 
 
-# 处理误差
-def errorHandle(data, index):
+# 处理异常值
+def errorHandle(data, Index):
     # 行索引列表
     rowIndex = data.index
     # 待删除的行索引列表
     toDel = []
     # 循环每一列
-    for columnName in index:
+    for columnName in Index:
         # 获取该列数据
         oneColumn = data[columnName]
         # 计算该列平均值
@@ -420,7 +513,16 @@ def errorHandle(data, index):
     # 删除所有记录行
     data.drop(toDel, inplace=True)
 
-    return data
+    shift = data['推进位移'].values
+    flag1 = 1
+    if len(shift) == 0:
+        flag1 = 0
+    else:
+        if (max(shift) <= 1600) or (min(shift) >= 200):
+            flag1 = 0
+    x = [data, flag1]
+    # print(x)
+    return x
 
 
 # 将相对路径转绝对路径
@@ -456,120 +558,77 @@ def AllUnZip():
             else:
                 print(file + ' is not zip')
 
+def rise(torque, FStable, stableOri):
+    torque0 = torque[int(stableOri)]
+    slope = []
+    for j in range(int(stableOri) - 8):
+        slope.append((torque[j] - torque0) / (j - stableOri))
 
-def getEMA(data):
-    # 平滑值 = a(新数据) + (1-a )(原平滑值)
-    a = 0.2
-    emas = data.copy()  # 创造一个和cps一样大小的集合
-    for i in range(len(data)):
-        if i == 0:
-            emas[i] = data[i]
-        if i > 0:
-            emas[i] = (1 - a) * emas[i - 1] + a * data[i]
-    return emas
+    sort = np.argsort(-np.array(slope))
+    sortList = sort
+    validSlopeList = []
+    for i in range(0, 5):
+        if sortList[i] <= FStable:
+            validSlopeList.append(sortList[i])
 
+    if len(validSlopeList) == 0:
+        riseNum = FStable
+    else:
+        riseNum = max(validSlopeList)
 
-def isRise(data):
-    riseNumber = 0
-    reduction = 0
-    flag = 0
-    for i in range(len(data) - 1):
-        if data[i + 1] - data[i] > 0:
-            riseNumber = riseNumber + 1
-        if data[i + 1] - data[i] < -20:
-            reduction = reduction + 1
-
-    if reduction > 5:
-        riseNumber = 0
-
-    return riseNumber
+    return riseNum
 
 
-def slope(data):
-    total = 0
-    for i in range(len(data) - 1):
-        total = (data[i + 1] - data[i]) * (data[i + 1] - data[i]) + total
+def stable(speed):
+    l = len(speed)
+    b = np.zeros((l - 16, 3))
+    for j in range(15, l - 16):
+        b[j, 1] = np.mean(speed[j - 15:j + 16])
+    for j in range(l - 16):
+        b[j, 2] = j
 
-    return total / 100
+    c = b[np.lexsort(-b[:, ::-1].T)]
+    c0 = np.nonzero(c[:, 1])
 
-def riseEnd(F):
-    total = 0
-    for i in range(len(F)):
-        if F[i] - F[1] > 1000:
-            total += 1
+    if len(c0[0]) != 0:
 
-    return total
+        c1 = c[0: max(c0[0]) + 1]
 
-def isDown(F):
-    total = 0
-    for i in range(len(F) - 1):
-        if F[i + 1] - F[i] <= 40:
-            total += 1
+        p = np.polyfit(b[15:max(c0[0]) + 16, 2], c1[:, 1], 20)
 
-    return total
+        y1 = np.polyval(p, b[:, 2])
 
+        ddd = np.diff(y1, 2)
 
+        st = np.std(ddd[round(0.2 * l):round(0.5 * l)])
+        ma = max(ddd[round(0.2 * l):round(0.5 * l)]) + 3 * st
+        mi = min(ddd[round(0.2 * l):round(0.5 * l)]) - 3 * st
 
-def rise(origin, end, torque, F):
-    number = origin
-    flag = 1
-    # 判断是否为上升段，并选取前30个数据
-    # while slope(torque[number - 30:number]) < 100 and number > origin + 31:
-    #     number = number - 1
-    # while slope(torque[number - 30:number]) > 30 and number > origin + 31:
-    #     number = number - 1
-    # if isRise(torque[number:number + 30]) > 15:
-    #     number = 0
-    # while riseEnd(F[number - 30:number]) < 5:
-    #     if number <= origin:
-    #         number = 0
-    #         flag = 0
-    #         break
-    #     number = number - 1
-    # if flag != 0:
-    #     number = number - 30
-    #     # print(number)
-    #     while number > origin + 50:
-    #         if isDown(F[number - 10:number]) > 8:
-    #             break
-    #         number = number - 1
-    while number < end - 100:
-       # if torque[number + 1] - torque[number] > 10 and isRise(torque[number:number + 100]) > 70 and \
-       #      isRise(torque[number + 1:number + 31]) > 20 and slope(torque[number:number + 100]) > 90 and \
-        if F[number + 1] - F[number] > 50:
-            break
+        t = np.where((ddd < mi) | (ddd > ma))
+
+        for j in range(len(t)):
+            if t[0][j] < round(0.4 * l):
+                t[0][j] = l
+
+        I = min(t[0])
+
+        if c[I, 2] > len(b) - 2:
+            yuzhi = b[c[I, 2], 1]
         else:
-            number = number + 1
-    return number
+            yuzhi = b[int(c[I, 2] + 2), 1]
 
+        sta = []
+        for i in range(len(b)):
+            if b[i, 1] >= yuzhi:
+                sta.append(b[i, 2])
 
-def stable(begin, length, torque):
-    number = begin
-    if number + 100 < length:
-        while (slope(torque[number:number + 100]) > 150 and np.mean(torque[number:number + 100]) > 2000)\
-                or (slope(torque[number:number + 100]) > 40 and np.mean(torque[number:number + 100]) <= 2000):
-            number = number + 1
+        begin = min(sta)
+        end = max(sta)
+        x = [begin, end, sta]
+    else:
+        x = [0, 1, []]
 
-    end = number
-    # 通过刀盘扭矩时， 判断稳定段终点， 并选取稳定段数据
-    while end < length:
-        if slope(torque[end:end + 50]) > 100:
-            if end - number < 50:
-                while (slope(torque[number:number + 100]) > 150 and np.mean(torque[number:number + 100]) > 2000) \
-                        or (slope(torque[number:number + 100]) > 40 and np.mean(torque[number:number + 100]) <= 2000):
-                    number = number + 1
-                    end = number
-                end = end + 1
-                continue
-            break
-        elif end + 1 == len(torque):
-            break
-        else:
-            end = end + 1
-    stable = []
-    stable.append(number)
-    stable.append(end + 1)
-    return stable
+    return x
 # if '__name__' == '__main__':
 # rf = RF()
 # rf.RFData()
