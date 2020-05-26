@@ -126,7 +126,7 @@ class RF:
 
                 stableF = self.findFStable(F)
 
-                riseNum = rise(torque, stableF, stableList[0])
+                riseNum = rise(torque, stableF, int(stableList[0]))
 
                 for index in self.RFIndex:
                     if index != '推进位移':
