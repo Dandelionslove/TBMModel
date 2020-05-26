@@ -126,8 +126,8 @@ class RF:
 
                 stableF = self.findFStable(F)
 
-                riseNum = rise(torque, stableF, int(stableList[0]))
-
+                riseNum = rise(torque, int(stableF), int(stableList[0]))
+                print(riseNum)
                 for index in self.RFIndex:
                     if index != '推进位移':
                         riseList = self.calculateRise(dataNonOutliers[index].values, riseNum)
@@ -559,9 +559,9 @@ def AllUnZip():
                 print(file + ' is not zip')
 
 def rise(torque, FStable, stableOri):
-    torque0 = torque[int(stableOri)]
+    torque0 = torque[stableOri]
     slope = []
-    for j in range(int(stableOri) - 8):
+    for j in range(stableOri - 8):
         slope.append((torque[j] - torque0) / (j - stableOri))
 
     sort = np.argsort(-np.array(slope))
