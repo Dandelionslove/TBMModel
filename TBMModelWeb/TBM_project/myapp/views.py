@@ -24,7 +24,7 @@ def adaCost(sample):
     model = pickle.loads(s)
     if len(sample.shape) == 1:
         sample = sample.reshape(1, len(sample))
-    return model.predict(sample)
+    return model.predict(sample).tolist()
 
 
 def RF_CART(data):
@@ -50,7 +50,8 @@ def RF1(request):
 @require_http_methods(["GET"])
 def RF2(request):
     res = []
-    for i in json.loads(request.GET['data']).values():
+    print(json.loads(request.GET['data']))
+    for i in json.loads(request.GET['data']):
         p = []
         for j in i:
             p.append(float(j))
@@ -109,7 +110,7 @@ def AC1(request):
 @require_http_methods(["GET"])
 def AC2(request):
     nd=[]
-    for i in json.loads(request.GET['data']).values():
+    for i in json.loads(request.GET['data']):
         p = []
         for j in i:
             p.append(float(j))
