@@ -246,7 +246,7 @@ class RF:
 
             c1 = c[0: max(c0[0]) + 1]
 
-            p = np.polyfit(b[15:max(c0[0]) + 16, 2], c1[:, 1], 20)
+            p = np.polyfit(b[10:max(c0[0]) + 11, 2], c1[:, 1], 20)
 
             y1 = np.polyval(p, b[:, 2])
 
