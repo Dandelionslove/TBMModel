@@ -127,7 +127,7 @@ class RF:
                 stableF = self.findFStable(F)
 
                 riseNum = rise(torque, int(stableF), int(stableList[0]))
-                print(riseNum)
+
                 for index in self.RFIndex:
                     if index != '推进位移':
                         riseList = self.calculateRise(dataNonOutliers[index].values, riseNum)
@@ -264,8 +264,8 @@ class RF:
 
             I = min(t[0])
 
-            if c[I, 2] > len(b) - 2:
-                yuzhi = b[c[I, 2], 1]
+            if c[I, 2] > len(b) - 3:
+                yuzhi = b[int(c[I, 2]), 1]
             else:
                 yuzhi = b[int(c[I, 2] + 2), 1]
 
@@ -612,8 +612,8 @@ def stable(speed):
 
         I = min(t[0])
 
-        if c[I, 2] > len(b) - 2:
-            yuzhi = b[c[I, 2], 1]
+        if c[I, 2] > len(b) - 3:
+            yuzhi = b[int(c[I, 2]), 1]
         else:
             yuzhi = b[int(c[I, 2] + 2), 1]
 
