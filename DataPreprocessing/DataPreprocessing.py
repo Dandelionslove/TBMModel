@@ -38,31 +38,31 @@ class RF:
         for date in self.dataDict:
             data = self.dataDict[date]
             # self.RFIndex = list(data.keys())
-            torque = data['刀盘扭矩'].values
+            torque0 = data['刀盘扭矩'].values
             result = {}
             stableList = []
             i = 0
-            while i < len(torque):
+            while i < len(torque0):
                 # 取单个循环段
                 origin = i
-                while origin < len(torque):
-                    if torque[origin] > 5:
+                while origin < len(torque0):
+                    if torque0[origin] > 5:
                         break
                     origin = origin + 1
 
-                if origin == len(torque):
+                if origin == len(torque0):
                     break
 
                 number = origin
                 n = 0
-                while number < len(torque):
-                    if torque[number] > 5:
+                while number < len(torque0):
+                    if torque0[number] > 5:
                         n = n + 1
                     else:
                         break
                     number = number + 1
 
-                if number == len(torque):
+                if number == len(torque0):
                     break
 
                 end = number - 1
@@ -70,6 +70,7 @@ class RF:
                 i = end + 1
 
                 index = self.RFStableIndex
+                # dataNonOutliers = errorHandle(data[origin:end + 2], index)
                 x = errorHandle(data[origin:end + 2], index)
                 if x[1] == 0:
                     continue
@@ -125,6 +126,9 @@ class RF:
                 # result = self.calculateRise(data, riseNum)
 
                 stableF = self.findFStable(F)
+
+                if int(stableF) == 0:
+                    continue
 
                 riseNum = rise(torque, int(stableF), int(stableList[0]))
 
@@ -187,39 +191,39 @@ class RF:
 
                 if flag == 1:
                     self.resultList.append(result)
-                    # # plot根据列表绘制出有意义的图形
-                    # plt.plot(torque, color='blue', label='T')
-                    # plt.plot(F, color='green', label='F')
-                    # plt.plot(speed, color='red', label='S')
-                    # plt.axvline(x=riseNum, ls="-", lw=1, c="black", label='Rise')  # 添加垂直直线
-                    # plt.axvline(x=riseNum + 29, ls="-", lw=1, c="black")
-                    # plt.axvline(x=stableList[0], ls="-", lw=1, c="purple", label='Stable')
-                    # plt.axvline(x=stableList[1], ls="-", lw=1, c="purple")
-                    #
-                    # # 设置图标标题
-                    # plt.legend()
-                    # plt.title(date, fontsize=24)
-                    # # plt.xlim([origin, end])
-                    # # 设置坐标轴标签
-                    # plt.xlabel("time/s")
-                    # plt.ylabel("")
-                    # # 设置刻度标记的大小
-                    # plt.tick_params(axis='both', labelsize=14)
-                    # # 转绝对地址
-                    # picDirPath = transAddress(picDirAddress)
-                    # # 不存在则创建
-                    # if not os.path.exists(picDirPath):
-                    #     os.makedirs(picDirPath)
-                    # picName = date[10:-4] + ':' + str(origin) + '~' + str(end) + '.png'
-                    # print(picName)
-                    # print('上升段' + str(riseNum + origin) + '~' + str(riseNum + origin + 29))
-                    # print('稳定段' + str(stableList[0] + origin) + '~' + str(stableList[1] + origin))
-                    # # 预处理文件路径
-                    # picFilePath = os.path.join(picDirPath, picName)
-                    # # 生成图片
-                    # plt.savefig(picFilePath)
-                    # # 清空缓存
-                    # plt.close()
+                    # plot根据列表绘制出有意义的图形
+                    plt.plot(torque, color='blue', label='T')
+                    plt.plot(F, color='green', label='F')
+                    plt.plot(speed, color='red', label='S')
+                    plt.axvline(x=riseNum, ls="-", lw=1, c="black", label='Rise')  # 添加垂直直线
+                    plt.axvline(x=riseNum + 29, ls="-", lw=1, c="black")
+                    plt.axvline(x=stableList[0], ls="-", lw=1, c="purple", label='Stable')
+                    plt.axvline(x=stableList[1], ls="-", lw=1, c="purple")
+
+                    # 设置图标标题
+                    plt.legend()
+                    plt.title(date, fontsize=24)
+                    # plt.xlim([origin, end])
+                    # 设置坐标轴标签
+                    plt.xlabel("time/s")
+                    plt.ylabel("")
+                    # 设置刻度标记的大小
+                    plt.tick_params(axis='both', labelsize=14)
+                    # 转绝对地址
+                    picDirPath = transAddress(picDirAddress)
+                    # 不存在则创建
+                    if not os.path.exists(picDirPath):
+                        os.makedirs(picDirPath)
+                    picName = date[10:-4] + ':' + str(origin) + '~' + str(end) + '.png'
+                    print(picName)
+                    print('上升段' + str(riseNum + origin) + '~' + str(riseNum + origin + 29))
+                    print('稳定段' + str(stableList[0] + origin) + '~' + str(stableList[1] + origin))
+                    # 预处理文件路径
+                    picFilePath = os.path.join(picDirPath, picName)
+                    # 生成图片
+                    plt.savefig(picFilePath)
+                    # 清空缓存
+                    plt.close()
 
         # print(result)
 
@@ -233,50 +237,55 @@ class RF:
 
     def findFStable(self, F):
         l = len(F)
-        b = np.zeros((l - 11, 3))
-        for j in range(10, l - 11):
-            b[j, 1] = np.mean(F[j - 10:j + 11])
-        for j in range(l - 11):
-            b[j, 2] = j
+        if l > 12:
+            b = np.zeros((l - 11, 3))
+            for j in range(10, l - 11):
+                b[j, 1] = np.mean(F[j - 10:j + 11])
+            for j in range(l - 11):
+                b[j, 2] = j
 
-        c = b[np.lexsort(-b[:, ::-1].T)]
-        c0 = np.nonzero(c[:, 1])
+            c = b[np.lexsort(-b[:, ::-1].T)]
+            c0 = np.nonzero(c[:, 1])
 
-        if len(c0[0]) != 0:
+            if len(c0[0]) != 0:
 
-            c1 = c[0: max(c0[0]) + 1]
+                c1 = c[0: max(c0[0]) + 1]
 
-            p = np.polyfit(b[10:max(c0[0]) + 11, 2], c1[:, 1], 20)
+                p = np.polyfit(b[10:max(c0[0]) + 11, 2], c1[:, 1], 20)
 
-            y1 = np.polyval(p, b[:, 2])
+                y1 = np.polyval(p, b[:, 2])
 
-            ddd = np.diff(y1, 2)
+                ddd = np.diff(y1, 2)
 
-            st = np.std(ddd[round(0.2 * l):round(0.5 * l)])
-            ma = max(ddd[round(0.2 * l):round(0.5 * l)]) + 3 * st
-            mi = min(ddd[round(0.2 * l):round(0.5 * l)]) - 3 * st
+                st = np.std(ddd[round(0.2 * l):round(0.5 * l)])
+                ma = max(ddd[round(0.2 * l):round(0.5 * l)]) + 3 * st
+                mi = min(ddd[round(0.2 * l):round(0.5 * l)]) - 3 * st
 
-            t = np.where((ddd < mi) | (ddd > ma))
+                t = np.where((ddd < mi) | (ddd > ma))
 
-            for j in range(len(t)):
-                if t[0][j] < round(0.4 * l):
-                    t[0][j] = l
+                for j in range(len(t)):
+                    if t[0][j] < round(0.4 * l):
+                        t[0][j] = l
 
-            I = min(t[0])
+                I = min(t[0])
 
-            if c[I, 2] > len(b) - 3:
-                yuzhi = b[int(c[I, 2]), 1]
+                if c[I, 2] > len(b) - 3:
+                    yuzhi = b[int(c[I, 2]), 1]
+                else:
+                    yuzhi = b[int(c[I, 2] + 2), 1]
+
+                sta = []
+                for i in range(len(b)):
+                    if b[i, 1] >= yuzhi:
+                        sta.append(b[i, 2])
+
+                begin = min(sta)
             else:
-                yuzhi = b[int(c[I, 2] + 2), 1]
+                begin = 0
+        else:
+            begin = 0
 
-            sta = []
-            for i in range(len(b)):
-                if b[i, 1] >= yuzhi:
-                    sta.append(b[i, 2])
-
-            begin = min(sta)
-
-            return begin
+        return begin
 
     # 判断上升段，并选取上升段数据
     def calculateRise(self, dataValue, number):
@@ -341,6 +350,7 @@ class AdaCost:
                 i = end + 1
 
                 index = self.AdaCostIndex0
+                # dataNonOutliers = errorHandle(data[origin:end + 2], index)
                 x = errorHandle(data[origin:end + 2], index)
                 if x[1] == 0:
                     continue
@@ -581,50 +591,53 @@ def rise(torque, FStable, stableOri):
 
 def stable(speed):
     l = len(speed)
-    b = np.zeros((l - 16, 3))
-    for j in range(15, l - 16):
-        b[j, 1] = np.mean(speed[j - 15:j + 16])
-    for j in range(l - 16):
-        b[j, 2] = j
+    if l > 17:
+        b = np.zeros((l - 16, 3))
+        for j in range(15, l - 16):
+            b[j, 1] = np.mean(speed[j - 15:j + 16])
+        for j in range(l - 16):
+            b[j, 2] = j
 
-    c = b[np.lexsort(-b[:, ::-1].T)]
-    c0 = np.nonzero(c[:, 1])
+        c = b[np.lexsort(-b[:, ::-1].T)]
+        c0 = np.nonzero(c[:, 1])
 
-    if len(c0[0]) != 0:
+        if len(c0[0]) != 0:
 
-        c1 = c[0: max(c0[0]) + 1]
+            c1 = c[0: max(c0[0]) + 1]
 
-        p = np.polyfit(b[15:max(c0[0]) + 16, 2], c1[:, 1], 20)
+            p = np.polyfit(b[15:max(c0[0]) + 16, 2], c1[:, 1], 20)
 
-        y1 = np.polyval(p, b[:, 2])
+            y1 = np.polyval(p, b[:, 2])
 
-        ddd = np.diff(y1, 2)
+            ddd = np.diff(y1, 2)
 
-        st = np.std(ddd[round(0.2 * l):round(0.5 * l)])
-        ma = max(ddd[round(0.2 * l):round(0.5 * l)]) + 3 * st
-        mi = min(ddd[round(0.2 * l):round(0.5 * l)]) - 3 * st
+            st = np.std(ddd[round(0.2 * l):round(0.5 * l)])
+            ma = max(ddd[round(0.2 * l):round(0.5 * l)]) + 3 * st
+            mi = min(ddd[round(0.2 * l):round(0.5 * l)]) - 3 * st
 
-        t = np.where((ddd < mi) | (ddd > ma))
+            t = np.where((ddd < mi) | (ddd > ma))
 
-        for j in range(len(t)):
-            if t[0][j] < round(0.4 * l):
-                t[0][j] = l
+            for j in range(len(t)):
+                if t[0][j] < round(0.4 * l):
+                    t[0][j] = l
 
-        I = min(t[0])
+            I = min(t[0])
 
-        if c[I, 2] > len(b) - 3:
-            yuzhi = b[int(c[I, 2]), 1]
+            if c[I, 2] > len(b) - 3:
+                yuzhi = b[int(c[I, 2]), 1]
+            else:
+                yuzhi = b[int(c[I, 2] + 2), 1]
+
+            sta = []
+            for i in range(len(b)):
+                if b[i, 1] >= yuzhi:
+                    sta.append(b[i, 2])
+
+            begin = min(sta)
+            end = max(sta)
+            x = [begin, end, sta]
         else:
-            yuzhi = b[int(c[I, 2] + 2), 1]
-
-        sta = []
-        for i in range(len(b)):
-            if b[i, 1] >= yuzhi:
-                sta.append(b[i, 2])
-
-        begin = min(sta)
-        end = max(sta)
-        x = [begin, end, sta]
+            x = [0, 1, []]
     else:
         x = [0, 1, []]
 
