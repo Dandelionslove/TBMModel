@@ -33,9 +33,12 @@ class RF:
         self.resultList = []
         # 处理原始数据的缺失和误差
         self.dataDict = AllTxtHandle(self.Address, self.RFIndex)
+        print(os.getcwd())
 
     def RFData(self):
+        print(1)
         for date in self.dataDict:
+            print(3)
             data = self.dataDict[date]
             # self.RFIndex = list(data.keys())
             torque = getEMA(data['刀盘扭矩'].values)
@@ -197,7 +200,7 @@ class RF:
         # print(df)
         # 生成预处理数文件
         createPreproData(df, self.dataPath, self.DataFileName)
-
+        print(2)
         # return df
 
     # 判断上升段，并选取上升段数据

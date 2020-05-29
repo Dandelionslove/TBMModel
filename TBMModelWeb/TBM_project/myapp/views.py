@@ -85,8 +85,6 @@ def RF3(request):
        float(pd.read_csv('data1/train.csv', usecols=['刀盘转速方差']).values[0][0]),
        float(pd.read_csv('data1/train.csv', usecols=['稳定段刀盘转速均值']).values[0][0]),
        float(pd.read_csv('data1/train.csv', usecols=['稳定段推进速度均值']).values[0][0]),
-       float(pd.read_csv('data1/train.csv', usecols=['稳定段刀盘扭矩均值']).values[0][0]),
-       float(pd.read_csv('data1/train.csv', usecols=['稳定段总推进力均值']).values[0][0]),
        ]
     print(d)
     res = RF_CART([d])
@@ -125,7 +123,7 @@ def AC2(request):
 def AC3(request):
     response = {}
     w=json.loads(request.GET['data'])
-    file_handle = open('../txtData/1.txt', mode='w')
+    file_handle = open('txtData/1.txt', mode='w')
     file_handle.write(w)
     rf = dpp.AdaCost()
     rf.adaCostData()
