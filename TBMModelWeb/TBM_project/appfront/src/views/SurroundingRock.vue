@@ -120,7 +120,10 @@
 									</el-upload>
 								</el-col>
 								<el-col :span="4">
-									<el-button type="warning" round @click="handleModelApplyBatchSubmit">开始预测</el-button>
+									<el-button type="warning" round @click="handleModelApplyFIleSubmit">开始预测</el-button>
+								</el-col>
+								<el-col :span="4">
+									<el-button type="primary" round @click="getFileResult">获得结果</el-button>
 								</el-col>
 							</el-row>
 							<el-table :data="modelApplyAllData" height="330px" style="width: 100%">
@@ -200,6 +203,7 @@ export default {
 			modelTestAllUploadData: [],
 			modelTestRandomShowingData: [],
 			modelApplyAllData: [],
+			fileResult: [],
 			modelTestTableColumnNameWithoutResult: [],
 			MaunalResult: [
 				{
@@ -347,7 +351,7 @@ export default {
 		// handleZipUpload: function(response, file, fileList) {
 		// 	this.zip = file;
 		// },
-		handleModelApplyBatchSubmit: function() {
+		handleModelApplyFIleSubmit: function() {
 			if (this.modelApplyAllData.length === 0) {
 				this.$message({
 					message: "请先上传数据集！",
@@ -355,55 +359,43 @@ export default {
 				});
 				return;
 			}
-			this.$axios({
-				url: "http://127.0.0.1:8000/api/AC_file",
-				methods: "post",
+
+			let _this = this;
+			for (let i = 0; i < _this.modelApplyAllData.length; i++)
+			{
+				_this.$axios({
+					url: "http://127.0.0.1:8000/api/RF_file",
+					methods: "get",
+					params: {
+						length: JSON.stringify(_this.modelApplyAllData.length),
+						count: JSON.stringify(i),
+						data: JSON.stringify(this.modelApplyAllData[i]),
+					}
+				})
+					.then(res => {
+						console.log(res);
+					})
+					.catch(err => {
+						console.log(err);
+					});
+			}
+			_this.$axios({
+				url: "http://127.0.0.1:8000/api/RF_file",
+				methods: "get",
 				params: {
-					data: this.modelApplyAllData,
+					length: JSON.stringify(-1),
+					count: JSON.stringify(-1),
+					data: JSON.stringify("$$$$$$$$$$"),
 				}
 			})
 				.then(res => {
-					alert(res);
+					console.log(res);
 				})
 				.catch(err => {
-					alert(err);
+					console.log(err);
 				});
 		},
-		// handleModelApplyBatchSubmit: function() {
-		// 	if (this.modelApplyAllData.length == 0) {
-		// 		this.$message({
-		// 			message: "请先上传数据集！",
-		// 			type: "warning"
-		// 		});
-		// 		return;
-		// 	}
-		// 	// 去除已经有的两列结果
-		// 	var tableToBeSubmited = [];
-		// 	var tableToBeSubmited = this.modelApplyAllData.map(
-		// 		this.modifyTableDataToBeSubmited
-		// 	);
-		// 	this.$axios({
-		// 		url: "http://127.0.0.1:8000/api/adaCostBatch",
-		// 		methods: "post",
-		// 		params: {
-		// 			data: tableToBeSubmited
-		// 		}
-		// 	})
-		// 		.then(res => {
-		// 			//给modelApplyAllData加一列
-		// 		})
-		// 		.catch(err => {
-		// 			alert(err);
-		// 		});
-		// 	var temp = [];
-		// 	this.modelApplyAllData.forEach(function(value, index) {
-		// 		console.log(index);
-		//
-		// 		temp[index] = value;
-		// 		temp[index]["grade_predict"] = 100;
-		// 	});
-		// 	this.modelApplyAllData = temp;
-		// },
+
 		handleModelApplyManualSubmit: function() {
 			this.$axios({
 				url: "http://127.0.0.1:8000/api/AC_para",
@@ -426,29 +418,32 @@ export default {
 		},
 
 		handleModelApplyUpload: function(err, obj, fileList) {
-			let _this = this;
-			var reader = new FileReader();
+			let reader = new FileReader();
 			reader.readAsText(obj.raw);
-			reader.onload = function () {
-				_this.modelApplyAllData = this.result.substr(0, this.result.length/4);
+			let _this = this;
+			reader.onload = function() {
+				let substr = this.result.substr(0, this.result.length/4);
+				_this.modelApplyAllData = substr.split("\r\n");
 			};
-			// var reader = new FileReader();
-			// reader.readAsText(obj.raw);
-			// var dataList = [];
-			//
-			// reader.onload = function() {
-			// 	var csvarry = this.result.split("\r\n");
-			// 	var headers = csvarry[0].split(",");
-			// 	for (var i = 1; i < csvarry.length; i++) {
-			// 		var dataRow = {};
-			// 		var temp = csvarry[i].split(",");
-			// 		for (var j = 0; j < temp.length; j++) {
-			// 			dataRow[headers[j]] = temp[j];
-			// 		}
-			// 		dataList.push(dataRow);
-			// 	}
-			// };
-			// this.modelApplyAllData = dataList;
+		},
+
+		getFileResult: function() {
+			this.$axios({
+				url: "http://127.0.0.1:8000/api/AC_result",
+				methods: "get",
+				// params: {
+				// 	data: this.ManualForm
+				// }
+			}).then(res => {
+				this.fileResult = res;
+				this.$message({
+					message: "结果已出",
+					type: "success"
+				});
+			})
+				.catch(err => {
+					alert(err);
+				});
 		},
 
 		tableRowClassName({ row, rowIndex }) {

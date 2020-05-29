@@ -127,12 +127,15 @@
 									</el-upload>
 								</el-col>
 								<el-col :span="4">
-									<el-button type="warning" round @click="handleModelApplyBatchSubmit">开始预测</el-button>
+									<el-button type="warning" round @click="handleModelApplyFileSubmit">开始预测</el-button>
+								</el-col>
+								<el-col :span="4">
+									<el-button type="primary" round @click="getFileResult">获得结果</el-button>
 								</el-col>
 							</el-row>
-							<el-table :data="modelApplyAllData" height="330px" style="width: 100%">
+							<el-table :data="fileResult" height="330px" style="width: 100%">
 								<el-table-column
-									v-for="(item,key,index) in modelApplyAllData[0]"
+									v-for="(item,key,index) in fileResult[0]"
 									:key="index"
 									:prop="key"
 									:label="key"
@@ -199,6 +202,7 @@ export default {
 			modelTestAllUploadData: [],
 			modelTestRandomShowingData: [],
 			modelApplyAllData: [],
+			fileResult: [],
 			modelTestTableColumnNameWithoutResult: [],
 			MaunalResult: [
 				{
@@ -357,7 +361,7 @@ export default {
 		// handleZipUpload: function(response, file, fileList) {
 		// 	this.zip = file;
 		// },
-		handleModelApplyBatchSubmit: function() {
+		handleModelApplyFileSubmit: function() {
 			if (this.modelApplyAllData.length === 0) {
 				this.$message({
 					message: "请先上传数据集！",
@@ -366,56 +370,42 @@ export default {
 				return;
 			}
 
-			this.$axios({
+			let _this = this;
+			for (let i = 0; i < _this.modelApplyAllData.length; i++)
+			{
+				_this.$axios({
+					url: "http://127.0.0.1:8000/api/RF_file",
+					methods: "get",
+					params: {
+						length: JSON.stringify(_this.modelApplyAllData.length),
+						count: JSON.stringify(i),
+						data: JSON.stringify(this.modelApplyAllData[i]),
+					}
+				})
+					.then(res => {
+						console.log(res);
+					})
+					.catch(err => {
+						console.log(err);
+					});
+			}
+			_this.$axios({
 				url: "http://127.0.0.1:8000/api/RF_file",
 				methods: "get",
 				params: {
-					data: JSON.stringify(this.modelApplyAllData[0]),
+					length: JSON.stringify(-1),
+					count: JSON.stringify(-1),
+					data: JSON.stringify("$$$$$$$$$$"),
 				}
 			})
 				.then(res => {
-					alert(res);
+					console.log(res);
 				})
 				.catch(err => {
-					alert(err);
+					console.log(err);
 				});
 		},
-		// handleModelApplyBatchSubmit: function() {
-		// 	if (this.modelApplyAllData.length == 0) {
-		// 		this.$message({
-		// 			message: "请先上传数据集！",
-		// 			type: "warning"
-		// 		});
-		// 		return;
-		// 	}
-		// 	// 去除已经有的两列结果
-		// 	var tableToBeSubmited = [];
-		// 	var tableToBeSubmited = this.modelApplyAllData.map(
-		// 		this.modifyTableDataToBeSubmited
-		// 	);
-		// 	this.$axios({
-		// 		url: "http://127.0.0.1:8000/api/RF_batch",
-		// 		methods: "post",
-		// 		params: {
-		// 			data: tableToBeSubmited
-		// 		}
-		// 	})
-		// 		.then(res => {
-		// 			//给modelApplyAllData加2列
-		// 		})
-		// 		.catch(err => {
-		// 			alert(err);
-		// 		});
-		// 	var temp = [];
-		// 	this.modelApplyAllData.forEach(function(value, index) {
-		// 		console.log(index);
-		//
-		// 		temp[index] = value;
-		// 		temp[index]["F_predict"] = 100;
-		// 		temp[index]["T_predict"] = 100;
-		// 	});
-		// 	this.modelApplyAllData = temp;
-		// },
+		
 		handleModelApplyManualSubmit: function() {
 			this.$axios({
 				url: "http://127.0.0.1:8000/api/RF_para",
@@ -424,12 +414,12 @@ export default {
 					data: this.ManualForm
 				}
 			}).then(res => {
-					this.MaunalResult[0].value = res.data[0];
-					this.MaunalResult[1].value = res.data[1];
-					this.$message({
-						message: "结果已出",
-						type: "success"
-					});
+				this.MaunalResult[0].value = res.data[0];
+				this.MaunalResult[1].value = res.data[1];
+				this.$message({
+					message: "结果已出",
+					type: "success"
+				});
 				})
 				.catch(err => {
 					alert(err);
@@ -469,6 +459,25 @@ export default {
 			// 	}
 			// };
 			// this.modelApplyAllData = dataList;
+		},
+
+		getFileResult: function() {
+			this.$axios({
+				url: "http://127.0.0.1:8000/api/RF_result",
+				methods: "get",
+				// params: {
+				// 	data: this.ManualForm
+				// }
+			}).then(res => {
+				this.fileResult = res;
+				this.$message({
+					message: "结果已出",
+					type: "success"
+				});
+			})
+				.catch(err => {
+					alert(err);
+				});
 		},
 
 		tableRowClassName({ row, rowIndex }) {

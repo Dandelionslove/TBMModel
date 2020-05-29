@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 # 相对路径均为相对DataPreprocessing.py的路径
 # 存放txt数据的文件夹
-txtAddress = '../txtData'
+txtAddress = 'txtData'
 # 存放预处理数据的文件夹
 preDataAddress = 'data2'
 # 存放zip压缩包的文件夹
