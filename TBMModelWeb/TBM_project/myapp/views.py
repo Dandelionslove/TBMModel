@@ -61,38 +61,65 @@ def RF2(request):
         res.append(data)
     return JsonResponse(res, safe=False)
 
-
+num=0
+record=[]
+total=0
+start=0
 @require_http_methods(["GET"])
 def RF3(request):
-    path = os.path.abspath(os.path.dirname(sys.argv[0]))
+    global num
+    global record
+    global total
+    global start
+    pwd = os.getcwd()
     response = {}
-    w=json.loads(request.GET['data'])
-    file_handle = open(path + '/txtData/1.txt', mode='a')
-    file_handle.write(w)
-    rf = dpp.RF()
-    rf.RFData()
-    d=[float(pd.read_csv('data1/train.csv', usecols=['总推进力均值']).values[0][0]),
-       float(pd.read_csv('data1/train.csv', usecols=['总推进力方差']).values[0][0]),
-       float(pd.read_csv('data1/train.csv', usecols=['刀盘功率均值']).values[0][0]),
-       float(pd.read_csv('data1/train.csv', usecols=['刀盘功率方差']).values[0][0]),
-       float(pd.read_csv('data1/train.csv', usecols=['刀盘扭矩均值']).values[0][0]),
-       float(pd.read_csv('data1/train.csv', usecols=['刀盘扭矩方差']).values[0][0]),
-       float(pd.read_csv('data1/train.csv', usecols=['推进速度均值']).values[0][0]),
-       float(pd.read_csv('data1/train.csv', usecols=['推进速度方差']).values[0][0]),
-       float(pd.read_csv('data1/train.csv', usecols=['刀盘速度给定均值']).values[0][0]),
-       float(pd.read_csv('data1/train.csv', usecols=['刀盘速度给定方差']).values[0][0]),
-       float(pd.read_csv('data1/train.csv', usecols=['刀盘转速均值']).values[0][0]),
-       float(pd.read_csv('data1/train.csv', usecols=['刀盘转速方差']).values[0][0]),
-       float(pd.read_csv('data1/train.csv', usecols=['稳定段刀盘转速均值']).values[0][0]),
-       float(pd.read_csv('data1/train.csv', usecols=['稳定段推进速度均值']).values[0][0]),
-       ]
+    total = json.loads(request.GET['length'])
+    count=json.loads(request.GET['count'])
+    w = json.loads(request.GET['data'])
+    print(count)
+    if count>=0:
+        if start==0:
+            start=1
+            record = ["" for i in range(total)]
+        record[count]=w+'\n'
+    else:
+        for i in record:
+            file_handle = open(pwd + '/txtData/1.txt', mode='a')
+            file_handle.write(i)
+            file_handle.flush()
+        num = 0
+        record = []
+        total = 0
+        start = 0
+        rf = dpp.RF()
+        rf.RFData()
+    return JsonResponse(response)
+
+@require_http_methods(["GET"])
+def RF4(request):
+    response = {}
+    d = [float(pd.read_csv('data1/train.csv', usecols=['总推进力均值']).values[0][0]),
+         float(pd.read_csv('data1/train.csv', usecols=['总推进力方差']).values[0][0]),
+         float(pd.read_csv('data1/train.csv', usecols=['刀盘功率均值']).values[0][0]),
+         float(pd.read_csv('data1/train.csv', usecols=['刀盘功率方差']).values[0][0]),
+         float(pd.read_csv('data1/train.csv', usecols=['刀盘扭矩均值']).values[0][0]),
+         float(pd.read_csv('data1/train.csv', usecols=['刀盘扭矩方差']).values[0][0]),
+         float(pd.read_csv('data1/train.csv', usecols=['推进速度均值']).values[0][0]),
+         float(pd.read_csv('data1/train.csv', usecols=['推进速度方差']).values[0][0]),
+         float(pd.read_csv('data1/train.csv', usecols=['刀盘速度给定均值']).values[0][0]),
+         float(pd.read_csv('data1/train.csv', usecols=['刀盘速度给定方差']).values[0][0]),
+         float(pd.read_csv('data1/train.csv', usecols=['刀盘转速均值']).values[0][0]),
+         float(pd.read_csv('data1/train.csv', usecols=['刀盘转速方差']).values[0][0]),
+         float(pd.read_csv('data1/train.csv', usecols=['稳定段刀盘转速均值']).values[0][0]),
+         float(pd.read_csv('data1/train.csv', usecols=['稳定段推进速度均值']).values[0][0]),
+         ]
     print(d)
     res = RF_CART([d])
     data = [res[0][0], res[1][0]]
-    response['prepro']=d
-    response['result']=data
+    response['prepro'] = d
+    response['result'] = data
+    os.remove(os.getcwd() + "/txtData/1.txt")
     return JsonResponse(response)
-
 
 @require_http_methods(["GET"])
 def AC1(request):
@@ -121,12 +148,39 @@ def AC2(request):
 
 @require_http_methods(["GET"])
 def AC3(request):
+    global num
+    global record
+    global total
+    global start
+    pwd = os.getcwd()
     response = {}
-    w=json.loads(request.GET['data'])
-    file_handle = open('txtData/1.txt', mode='w')
-    file_handle.write(w)
-    rf = dpp.AdaCost()
-    rf.adaCostData()
+    total = json.loads(request.GET['length'])
+    count = json.loads(request.GET['count'])
+    w = json.loads(request.GET['data'])
+    print(count)
+    if count >= 0:
+        if start == 0:
+            start = 1
+            record = ["" for i in range(total)]
+        record[count] = w + '\n'
+    else:
+        for i in record:
+            file_handle = open(pwd + '/txtData/1.txt', mode='a')
+            file_handle.write(i)
+            file_handle.flush()
+        num = 0
+        record = []
+        total = 0
+        start = 0
+        rf = dpp.AdaCost()
+        rf.adaCostData()
+    return JsonResponse(response)
+
+
+
+@require_http_methods(["GET"])
+def AC4(request):
+    response = {}
     d=[float(pd.read_csv('data2/adaCostPreData.csv',usecols=['刀盘运行时间均值']).values[0][0]),
        float(pd.read_csv('data2/adaCostPreData.csv', usecols=['撑靴压力均值']).values[0][0]),
        float(pd.read_csv('data2/adaCostPreData.csv', usecols=['刀盘转速均值']).values[0][0]),
@@ -140,7 +194,6 @@ def AC3(request):
        float(pd.read_csv('data2/adaCostPreData.csv', usecols=['右撑靴油缸行程检测均值']).values[0][0]),
        ]
     print(d)
-
     w = np.array(d)
     data = adaCost(w)
     response['prepro']=d
