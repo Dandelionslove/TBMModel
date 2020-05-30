@@ -422,7 +422,7 @@ export default {
 			reader.readAsText(obj.raw);
 			let _this = this;
 			reader.onload = function() {
-				let substr = this.result.substr(0, this.result.length/4);
+				let substr = this.result.substr(0, this.result.length);
 				_this.modelApplyAllData = substr.split("\r\n");
 			};
 		},

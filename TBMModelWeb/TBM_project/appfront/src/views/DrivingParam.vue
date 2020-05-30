@@ -371,15 +371,37 @@ export default {
 			}
 
 			let _this = this;
+			let promiseList = [];
 			for (let i = 0; i < _this.modelApplyAllData.length; i++)
 			{
+				let p1 = new Promise(function (resolve, reject) {
+					_this.$axios({
+						url: "http://127.0.0.1:8000/api/RF_file",
+						methods: "get",
+						params: {
+							length: JSON.stringify(_this.modelApplyAllData.length),
+							count: JSON.stringify(i),
+							data: JSON.stringify(_this.modelApplyAllData[i]),
+						}
+					})
+						.then(res => {
+							resolve(res);
+						})
+						.catch(err => {
+							reject(err);
+						});
+				});
+				promiseList.push(p1);
+			}
+			console.log(promiseList);
+			Promise.all(promiseList).then(function () {
 				_this.$axios({
 					url: "http://127.0.0.1:8000/api/RF_file",
 					methods: "get",
 					params: {
-						length: JSON.stringify(_this.modelApplyAllData.length),
-						count: JSON.stringify(i),
-						data: JSON.stringify(this.modelApplyAllData[i]),
+						length: JSON.stringify(-1),
+						count: JSON.stringify(-1),
+						data: JSON.stringify("$$$$$$$$$$"),
 					}
 				})
 					.then(res => {
@@ -388,22 +410,7 @@ export default {
 					.catch(err => {
 						console.log(err);
 					});
-			}
-			_this.$axios({
-				url: "http://127.0.0.1:8000/api/RF_file",
-				methods: "get",
-				params: {
-					length: JSON.stringify(-1),
-					count: JSON.stringify(-1),
-					data: JSON.stringify("$$$$$$$$$$"),
-				}
-			})
-				.then(res => {
-					console.log(res);
-				})
-				.catch(err => {
-					console.log(err);
-				});
+			});
 		},
 		
 		handleModelApplyManualSubmit: function() {
@@ -437,8 +444,9 @@ export default {
 			reader.readAsText(obj.raw);
 			let _this = this;
 			reader.onload = function() {
-				let substr = this.result.substr(0, this.result.length/4);
+				let substr = this.result.substr(0, this.result.length);
 				_this.modelApplyAllData = substr.split("\r\n");
+				// console.log(_this.modelApplyAllData);
 			};
 			// var reader = new FileReader();
 			// reader.readAsText(obj.raw);
