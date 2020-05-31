@@ -120,13 +120,13 @@
 									</el-upload>
 								</el-col>
 								<el-col :span="4">
-									<el-button type="warning" round @click="handleModelApplyFIleSubmit">开始预测</el-button>
+									<el-button type="warning" round @click="handleModelApplyFileSubmit">开始预测</el-button>
 								</el-col>
 								<el-col :span="4">
 									<el-button type="primary" round @click="getFileResult">获得结果</el-button>
 								</el-col>
 							</el-row>
-							<el-table :data="modelApplyAllData" height="330px" style="width: 100%">
+							<el-table :data="fileResult" height="330px" style="width: 100%">
 								<el-table-column
 									v-for="(item,key,index) in modelApplyAllData[0]"
 									:key="index"
@@ -195,7 +195,7 @@
 </style>
 
 <script>
-import JSZip from "jszip";
+import $ from 'jquery';
 
 export default {
 	data() {
@@ -351,7 +351,7 @@ export default {
 		// handleZipUpload: function(response, file, fileList) {
 		// 	this.zip = file;
 		// },
-		handleModelApplyFIleSubmit: function() {
+		handleModelApplyFileSubmit: function() {
 			if (this.modelApplyAllData.length === 0) {
 				this.$message({
 					message: "请先上传数据集！",
@@ -363,37 +363,50 @@ export default {
 			let _this = this;
 			for (let i = 0; i < _this.modelApplyAllData.length; i++)
 			{
-				_this.$axios({
-					url: "http://127.0.0.1:8000/api/RF_file",
-					methods: "get",
-					params: {
-						length: JSON.stringify(_this.modelApplyAllData.length),
-						count: JSON.stringify(i),
-						data: JSON.stringify(this.modelApplyAllData[i]),
-					}
-				})
-					.then(res => {
-						console.log(res);
-					})
-					.catch(err => {
-						console.log(err);
-					});
-			}
-			_this.$axios({
-				url: "http://127.0.0.1:8000/api/RF_file",
-				methods: "get",
-				params: {
-					length: JSON.stringify(-1),
-					count: JSON.stringify(-1),
-					data: JSON.stringify("$$$$$$$$$$"),
+				if (i < _this.modelApplyAllData.length-1) {
+					setTimeout(function(i) {
+						return function () {
+							$.ajax({
+								url: "http://127.0.0.1:8000/api/AC_file",
+								type: "GET",
+								async: false,
+								data: {
+									length: JSON.stringify(_this.modelApplyAllData.length),
+									count: JSON.stringify(i),
+									data: JSON.stringify(_this.modelApplyAllData[i]),
+								},
+								timeout:5000,
+								dataType:'json',
+								error: function (err) {
+									console.log(err);
+								}
+							})
+						}
+					}(i), 10);
 				}
-			})
-				.then(res => {
-					console.log(res);
-				})
-				.catch(err => {
-					console.log(err);
-				});
+				else
+				{
+					setTimeout(function(i) {
+						return function () {
+							$.ajax({
+								url: "http://127.0.0.1:8000/api/AC_file",
+								type: "GET",
+								async: false,
+								data: {
+									length: JSON.stringify(-1),
+									count: JSON.stringify(-1),
+									data: JSON.stringify(_this.modelApplyAllData[i]),
+								},
+								timeout:5000,
+								dataType:'json',
+								error: function (err) {
+									console.log(err);
+								}
+							})
+						}
+					}(i), 10);
+				}
+			}
 		},
 
 		handleModelApplyManualSubmit: function() {
@@ -424,6 +437,9 @@ export default {
 			reader.onload = function() {
 				let substr = this.result.substr(0, this.result.length);
 				_this.modelApplyAllData = substr.split("\r\n");
+				_this.modelApplyAllData.pop();
+				_this.modelApplyAllData.push('$$$$$$$$$$');
+				// console.log(_this.modelApplyAllData);
 			};
 		},
 
@@ -435,11 +451,8 @@ export default {
 				// 	data: this.ManualForm
 				// }
 			}).then(res => {
-				this.fileResult = res;
-				this.$message({
-					message: "结果已出",
-					type: "success"
-				});
+				this.fileResult = res.data;
+				console.log(res.data);
 			})
 				.catch(err => {
 					alert(err);
