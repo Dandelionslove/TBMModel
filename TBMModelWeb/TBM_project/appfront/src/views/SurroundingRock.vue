@@ -128,7 +128,7 @@
 							</el-row>
 							<el-table :data="fileResult" height="330px" style="width: 100%">
 								<el-table-column
-									v-for="(item,key,index) in modelApplyAllData[0]"
+									v-for="(item,key,index) in fileResult_header[0]"
 									:key="index"
 									:prop="key"
 									:label="key"
@@ -204,6 +204,7 @@ export default {
 			modelTestRandomShowingData: [],
 			modelApplyAllData: [],
 			fileResult: [],
+			fileResult_header: [],
 			modelTestTableColumnNameWithoutResult: [],
 			MaunalResult: [
 				{
@@ -451,8 +452,24 @@ export default {
 				// 	data: this.ManualForm
 				// }
 			}).then(res => {
-				this.fileResult = res.data;
-				console.log(res.data);
+				var dataRow = {};
+					var dataRow_header = {};
+					var header_name = ['参数1','参数2','参数3','参数4','参数5','参数6','参数7',
+					'参数8','参数9','参数10','参数11','参数12','参数13','参数14']
+					for (var i = 0; i < res.data.prepro.length; i++) {
+						dataRow[header_name[i]] = res.data.prepro[i];
+						dataRow_header[header_name[i]] = res.data.prepro[i];
+					}
+					// 专门存放列名 去除结果列，为了让结果列单独固定显示
+					var dataArr_header = [];
+					dataArr_header.push(dataRow_header);
+					this.fileResult_header = dataArr_header;
+
+					// 
+					dataRow["grade_predict"] = res.data.result[0];
+					var dataArr = [];
+					dataArr.push(dataRow);
+					this.fileResult = dataArr;
 			})
 				.catch(err => {
 					alert(err);
