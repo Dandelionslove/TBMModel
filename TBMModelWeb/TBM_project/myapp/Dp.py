@@ -13,7 +13,7 @@ preDataAddress = 'data2'
 # 存放zip压缩包的文件夹
 zipAddress = '../../Data'
 # 围岩等级表地址
-rockFormAddress = 'TBMData/围岩等级信息统计表-现场工程师统计.xlsx'
+rockFormAddress = '围岩等级信息统计表-现场工程师统计.xlsx'
 # 存放可视化图片
 picDirAddress = '../../DataPic'
 
