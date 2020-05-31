@@ -76,7 +76,7 @@ def RF3(request):
     total = json.loads(request.GET['length'])
     count=json.loads(request.GET['count'])
     w = json.loads(request.GET['data'])
-    print(count)
+    # print(count)
     if count>=0:
         if start==0:
             start=1
@@ -113,7 +113,7 @@ def RF4(request):
          float(pd.read_csv('data1/train.csv', usecols=['稳定段刀盘转速均值']).values[0][0]),
          float(pd.read_csv('data1/train.csv', usecols=['稳定段推进速度均值']).values[0][0]),
          ]
-    print(d)
+    # print(d)
     res = RF_CART([d])
     data = [res[0][0], res[1][0]]
     response['prepro'] = d

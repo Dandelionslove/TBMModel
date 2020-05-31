@@ -10,6 +10,7 @@
   "dependencies": {
     "element-ui": "^2.3.4",
     "form-data": "^3.0.0",
+    "jquery": "^3.5.1",
     "jszip": "^3.4.0",
     "less": "^3.11.1",
     "less-loader": "^5.0.0",

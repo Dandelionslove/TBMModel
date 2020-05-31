@@ -196,6 +196,8 @@
 </style>
 
 <script>
+	import $ from 'jquery';
+
 export default {
 	data() {
 		return {
@@ -371,46 +373,93 @@ export default {
 			}
 
 			let _this = this;
-			let promiseList = [];
 			for (let i = 0; i < _this.modelApplyAllData.length; i++)
 			{
-				let p1 = new Promise(function (resolve, reject) {
-					_this.$axios({
-						url: "http://127.0.0.1:8000/api/RF_file",
-						methods: "get",
-						params: {
-							length: JSON.stringify(_this.modelApplyAllData.length),
-							count: JSON.stringify(i),
-							data: JSON.stringify(_this.modelApplyAllData[i]),
+				if (i < _this.modelApplyAllData.length-1) {
+					setTimeout(function(i) {
+						return function () {
+							$.ajax({
+								url: "http://127.0.0.1:8000/api/RF_file",
+								type: "GET",
+								async: false,
+								data: {
+									length: JSON.stringify(_this.modelApplyAllData.length),
+									count: JSON.stringify(i),
+									data: JSON.stringify(_this.modelApplyAllData[i]),
+								},
+								timeout:5000,
+								dataType:'json',
+								error: function (err) {
+									console.log(err);
+								}
+							})
 						}
-					})
-						.then(res => {
-							resolve(res);
-						})
-						.catch(err => {
-							reject(err);
-						});
-				});
-				promiseList.push(p1);
+					}(i), 10);
+				}
+				else
+				{
+					setTimeout(function(i) {
+						return function () {
+							$.ajax({
+								url: "http://127.0.0.1:8000/api/RF_file",
+								type: "GET",
+								async: false,
+								data: {
+									length: JSON.stringify(-1),
+									count: JSON.stringify(-1),
+									data: JSON.stringify(_this.modelApplyAllData[i]),
+								},
+								timeout:5000,
+								dataType:'json',
+								error: function (err) {
+									console.log(err);
+								}
+							})
+						}
+					}(i), 10);
+				}
 			}
-			console.log(promiseList);
-			Promise.all(promiseList).then(function () {
-				_this.$axios({
-					url: "http://127.0.0.1:8000/api/RF_file",
-					methods: "get",
-					params: {
-						length: JSON.stringify(-1),
-						count: JSON.stringify(-1),
-						data: JSON.stringify("$$$$$$$$$$"),
-					}
-				})
-					.then(res => {
-						console.log(res);
-					})
-					.catch(err => {
-						console.log(err);
-					});
-			});
+			// let promiseList = [];
+			// for (let i = 0; i < _this.modelApplyAllData.length; i++)
+			// {
+			// 	let p1 = new Promise(function (resolve, reject) {
+			// 		_this.$axios({
+			// 			url: "http://127.0.0.1:8000/api/RF_file",
+			// 			methods: "get",
+			// 			async: false,
+			// 			params: {
+			// 				length: JSON.stringify(_this.modelApplyAllData.length),
+			// 				count: JSON.stringify(i),
+			// 				data: JSON.stringify(_this.modelApplyAllData[i]),
+			// 			}
+			// 		})
+			// 			.then(res => {
+			// 				resolve(res);
+			// 			})
+			// 			.catch(err => {
+			// 				reject(err);
+			// 			});
+			// 	});
+			// 	promiseList.push(p1);
+			// }
+			// console.log(promiseList);
+			// Promise.all(promiseList).then(function () {
+			// 	_this.$axios({
+			// 		url: "http://127.0.0.1:8000/api/RF_file",
+			// 		methods: "get",
+			// 		params: {
+			// 			length: JSON.stringify(-1),
+			// 			count: JSON.stringify(-1),
+			// 			data: JSON.stringify("$$$$$$$$$$"),
+			// 		}
+			// 	})
+			// 		.then(res => {
+			// 			console.log(res);
+			// 		})
+			// 		.catch(err => {
+			// 			console.log(err);
+			// 		});
+			// });
 		},
 		
 		handleModelApplyManualSubmit: function() {
@@ -446,6 +495,8 @@ export default {
 			reader.onload = function() {
 				let substr = this.result.substr(0, this.result.length);
 				_this.modelApplyAllData = substr.split("\r\n");
+				_this.modelApplyAllData.pop();
+				_this.modelApplyAllData.push('$$$$$$$$$$');
 				// console.log(_this.modelApplyAllData);
 			};
 			// var reader = new FileReader();
@@ -473,15 +524,8 @@ export default {
 			this.$axios({
 				url: "http://127.0.0.1:8000/api/RF_result",
 				methods: "get",
-				// params: {
-				// 	data: this.ManualForm
-				// }
 			}).then(res => {
-				this.fileResult = res;
-				this.$message({
-					message: "结果已出",
-					type: "success"
-				});
+				this.fileResult = res.data;
 			})
 				.catch(err => {
 					alert(err);
