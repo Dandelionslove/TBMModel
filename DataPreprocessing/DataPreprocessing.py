@@ -39,7 +39,6 @@ class RF:
             data = self.dataDict[date]
             # self.RFIndex = list(data.keys())
             torque0 = data['刀盘扭矩'].values
-            result = {}
             stableList = []
             i = 0
             while i < len(torque0):
@@ -131,7 +130,7 @@ class RF:
                     continue
 
                 riseNum = rise(torque, int(stableF), int(stableList[0]))
-
+                result = {}
                 for index in self.RFIndex:
                     if index != '推进位移':
                         riseList = self.calculateRise(dataNonOutliers[index].values, riseNum)
@@ -191,39 +190,39 @@ class RF:
 
                 if flag == 1:
                     self.resultList.append(result)
-                    # plot根据列表绘制出有意义的图形
-                    plt.plot(torque, color='blue', label='T')
-                    plt.plot(F, color='green', label='F')
-                    plt.plot(speed, color='red', label='S')
-                    plt.axvline(x=riseNum, ls="-", lw=1, c="black", label='Rise')  # 添加垂直直线
-                    plt.axvline(x=riseNum + 29, ls="-", lw=1, c="black")
-                    plt.axvline(x=stableList[0], ls="-", lw=1, c="purple", label='Stable')
-                    plt.axvline(x=stableList[1], ls="-", lw=1, c="purple")
-
-                    # 设置图标标题
-                    plt.legend()
-                    plt.title(date, fontsize=24)
-                    # plt.xlim([origin, end])
-                    # 设置坐标轴标签
-                    plt.xlabel("time/s")
-                    plt.ylabel("")
-                    # 设置刻度标记的大小
-                    plt.tick_params(axis='both', labelsize=14)
-                    # 转绝对地址
-                    picDirPath = transAddress(picDirAddress)
-                    # 不存在则创建
-                    if not os.path.exists(picDirPath):
-                        os.makedirs(picDirPath)
-                    picName = date[10:-4] + ':' + str(origin) + '~' + str(end) + '.png'
-                    print(picName)
-                    print('上升段' + str(riseNum + origin) + '~' + str(riseNum + origin + 29))
-                    print('稳定段' + str(stableList[0] + origin) + '~' + str(stableList[1] + origin))
-                    # 预处理文件路径
-                    picFilePath = os.path.join(picDirPath, picName)
-                    # 生成图片
-                    plt.savefig(picFilePath)
-                    # 清空缓存
-                    plt.close()
+                    # # plot根据列表绘制出有意义的图形
+                    # plt.plot(torque, color='blue', label='T')
+                    # plt.plot(F, color='green', label='F')
+                    # plt.plot(speed, color='red', label='S')
+                    # plt.axvline(x=riseNum, ls="-", lw=1, c="black", label='Rise')  # 添加垂直直线
+                    # plt.axvline(x=riseNum + 29, ls="-", lw=1, c="black")
+                    # plt.axvline(x=stableList[0], ls="-", lw=1, c="purple", label='Stable')
+                    # plt.axvline(x=stableList[1], ls="-", lw=1, c="purple")
+                    #
+                    # # 设置图标标题
+                    # plt.legend()
+                    # plt.title(date, fontsize=24)
+                    # # plt.xlim([origin, end])
+                    # # 设置坐标轴标签
+                    # plt.xlabel("time/s")
+                    # plt.ylabel("")
+                    # # 设置刻度标记的大小
+                    # plt.tick_params(axis='both', labelsize=14)
+                    # # 转绝对地址
+                    # picDirPath = transAddress(picDirAddress)
+                    # # 不存在则创建
+                    # if not os.path.exists(picDirPath):
+                    #     os.makedirs(picDirPath)
+                    # picName = date[10:-4] + ':' + str(origin) + '~' + str(end) + '.png'
+                    # print(picName)
+                    # print('上升段' + str(riseNum + origin) + '~' + str(riseNum + origin + 29))
+                    # print('稳定段' + str(stableList[0] + origin) + '~' + str(stableList[1] + origin))
+                    # # 预处理文件路径
+                    # picFilePath = os.path.join(picDirPath, picName)
+                    # # 生成图片
+                    # plt.savefig(picFilePath)
+                    # # 清空缓存
+                    # plt.close()
 
         # print(result)
 
@@ -320,29 +319,29 @@ class AdaCost:
         for date in self.dataDict:
             data = self.dataDict[date]
             # self.AdaCostIndex = list(data.keys())
-            torque = data['刀盘扭矩'].values
+            torque0 = data['刀盘扭矩'].values
             i = 0
-            while i < len(torque):
+            while i < len(torque0):
                 # 取单个循环段
                 origin = i
-                while origin < len(torque):
-                    if torque[origin] > 5:
+                while origin < len(torque0):
+                    if torque0[origin] > 5:
                         break
                     origin = origin + 1
 
-                if origin == len(torque):
+                if origin == len(torque0):
                     break
 
                 number = origin
                 n = 0
-                while number < len(torque):
-                    if torque[number] > 5:
+                while number < len(torque0):
+                    if torque0[number] > 5:
                         n = n + 1
                     else:
                         break
                     number = number + 1
 
-                if number == len(torque):
+                if number == len(torque0):
                     break
 
                 end = number - 1
