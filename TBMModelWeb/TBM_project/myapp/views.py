@@ -198,4 +198,5 @@ def AC4(request):
     data = adaCost(w)
     response['prepro']=d
     response['result']=data
+    os.remove(os.getcwd() + "/txtData/1.txt")
     return JsonResponse(response)
