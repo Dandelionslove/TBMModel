@@ -129,6 +129,9 @@
 								<el-col :span="4">
 									<el-button type="warning" round @click="handleModelApplyFileSubmit">开始预测</el-button>
 								</el-col>
+								<el-col :span="3">
+									<progress-bar :value="progressCount" :options="options" id="progress-bar"/>
+								</el-col>
 								<el-col :span="4">
 									<el-button type="primary" round @click="getFileResult">获得结果</el-button>
 								</el-col>
@@ -189,6 +192,11 @@
 	margin: auto;
 }
 
+#progress-bar {
+	margin-top: -20px;
+	display: none;
+}
+
 .result {
 	width: 40%;
 	margin: auto;
@@ -201,6 +209,7 @@
 export default {
 	data() {
 		return {
+			progressCount: 0,
 			modelTestAllUploadData: [],
 			modelTestRandomShowingData: [],
 			modelApplyAllData: [],
@@ -237,7 +246,31 @@ export default {
 				{ url: require("../assets/rf1.png"), link: "/content1" },
 				{ url: require("../assets/rf2.png"), link: "/content2" },
 				{ url: require("../assets/logo.png"), link: "/content3" }
-			]
+			],
+			options: {
+				text: {
+					color: '#FFFFFF',
+					shadowEnable: true,
+					shadowColor: '#000000',
+					fontSize: 10,
+					fontFamily: 'Helvetica',
+					dynamicPosition: false,
+					hideText: false
+				},
+				progress: {
+					color: '#2dbd2d',
+					backgroundColor: '#333333'
+				},
+				layout: {
+					height: 40,
+					width: 40,
+					verticalTextAlign: 30,
+					horizontalTextAlign:10,
+					strokeWidth: 30,
+					progressPadding: 0,
+					type: 'circle'
+				}
+			},
 		};
 	},
 
@@ -374,9 +407,11 @@ export default {
 			}
 
 			let _this = this;
-			for (let i = 0; i < _this.modelApplyAllData.length; i++)
+			let progressBar = document.getElementById('progress-bar');
+			let length = _this.modelApplyAllData.length;
+			for (let i = 0; i < length; i++)
 			{
-				if (i < _this.modelApplyAllData.length-1) {
+				if (i < length - 1) {
 					setTimeout(function(i) {
 						return function () {
 							$.ajax({
@@ -384,12 +419,16 @@ export default {
 								type: "GET",
 								async: false,
 								data: {
-									length: JSON.stringify(_this.modelApplyAllData.length),
+									length: JSON.stringify(length),
 									count: JSON.stringify(i),
 									data: JSON.stringify(_this.modelApplyAllData[i]),
 								},
 								timeout:5000,
 								dataType:'json',
+								success: function(data) {
+									progressBar.style.display = 'block';
+									_this.progressCount = (i / length * 100).toFixed(2);
+								},
 								error: function (err) {
 									console.log(err);
 								}
@@ -412,6 +451,9 @@ export default {
 								},
 								timeout:5000,
 								dataType:'json',
+								success: function(data) {
+									progressBar.style.display = 'none';
+								},
 								error: function (err) {
 									console.log(err);
 								}

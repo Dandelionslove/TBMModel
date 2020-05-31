@@ -7,21 +7,23 @@ import routerrrr from '../router/routes.js'
 import VueRouter from "vue-router"
 import DataExample from '../views/DataExample.vue'
 import Header from '../components/Header.vue'
+import ProgressBar from 'vuejs-progress-bar'
 
 import axios from 'axios';
 Vue.prototype.$axios = axios;
 
-Vue.use(ElementUI)
-Vue.use(VueRouter)
+Vue.use(ElementUI);
+Vue.use(VueRouter);
+Vue.use(ProgressBar);
 
 new Vue({
   el: '#app',
   router: routerrrr,
   render: h => h(App)
-})
+});
 
 new Vue({
   el: '#menu',
   router: routerrrr,
   render: h => h(Menu)
-})
+});
