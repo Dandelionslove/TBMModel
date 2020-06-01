@@ -383,6 +383,35 @@ class AdaCost:
 
                 if flag == 1:
                     self.resultList.append(result)
+                    # # plot根据列表绘制出有意义的图形
+                    # plt.plot(torque, color='blue', label='T')
+                    # plt.plot(speed, color='red', label='S')
+                    # plt.axvline(x=stableList[0], ls="-", lw=1, c="purple", label='Stable')
+                    # plt.axvline(x=stableList[1], ls="-", lw=1, c="purple")
+                    #
+                    # # 设置图标标题
+                    # plt.legend()
+                    # plt.title(date, fontsize=24)
+                    # # plt.xlim([origin, end])
+                    # # 设置坐标轴标签
+                    # plt.xlabel("time/s")
+                    # plt.ylabel("")
+                    # # 设置刻度标记的大小
+                    # plt.tick_params(axis='both', labelsize=14)
+                    # # 转绝对地址
+                    # picDirPath = transAddress(picDirAddress)
+                    # # 不存在则创建
+                    # if not os.path.exists(picDirPath):
+                    #     os.makedirs(picDirPath)
+                    # picName = date[10:-4] + ':' + str(origin) + '~' + str(end) + '.png'
+                    # print(picName)
+                    # print('稳定段' + str(stableList[0] + origin) + '~' + str(stableList[1] + origin))
+                    # # 预处理文件路径
+                    # picFilePath = os.path.join(picDirPath, picName)
+                    # # 生成图片
+                    # plt.savefig(picFilePath)
+                    # # 清空缓存
+                    # plt.close()
 
         # print(self.resultList)
         df = pd.DataFrame(self.resultList)
