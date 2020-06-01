@@ -49,11 +49,7 @@ param = {
     'max_depth':
     range(2, 20, 1),
     'max_features':
-    range(2, 14, 1),
-    'min_samples_split':
-    range(2, 10, 1),
-    'min_samples_leaf':
-    range(1, 10, 1),
+    range(7, 14, 1),
 }
 
 gcv_t = GridSearchCV(estimator=GradientBoostingRegressor(),
