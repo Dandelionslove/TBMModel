@@ -1,4 +1,4 @@
-explained_variance_score of T: 0.7360626638369011
-explained_variance_score of F: 0.8489767988132135
-mean_squared_error of T: 120859.1238527652
-mean_squared_error of F: 1373073.382507855
+best_score of T: 0.8277655721198834
+best_params of T: {'loss': 'huber'}
+best_score of F: 0.8666876989704775
+best_params of F: {'loss': 'ls'}
