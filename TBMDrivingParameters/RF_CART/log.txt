@@ -1,4 +1,12 @@
-best_score of T: 0.8277655721198834
-best_params of T: {'loss': 'huber'}
-best_score of F: 0.8666876989704775
-best_params of F: {'loss': 'ls'}
+explained_variance_score of T: 0.3485697407955529
+explained_variance_score of F: 0.9458479404196727
+mean_squared_error of T: 115661362.17791739
+mean_squared_error of F: 506927.04789882264
+mean_squared_log_error of T: 3.0261021883183443
+mean_squared_log_error of F: 0.003896319982860692
+median_absolute_error of T: 10738.621545175363
+median_absolute_error of F: 362.9993166211698
+mean_absolute_error of T: 10449.641900753124
+mean_absolute_error of F: 510.8727715738736
+r2_score of T: -10.651913981861767
+r2_score of F: 0.9457386159322191

@@ -57,19 +57,11 @@ gcv_t = GridSearchCV(estimator=GradientBoostingRegressor(),
                      cv=2)
 gcv_t.fit(feature, result_t)
 
-gcv_f = GridSearchCV(estimator=GradientBoostingRegressor(),
-                     param_grid=param,
-                     cv=2)
-gcv_f.fit(feature, result_f)
-
 joblib.dump(gcv_t, path + "/model/model_t.pkl")
-joblib.dump(gcv_f, path + "/model/model_f.pkl")
 
 log_file = open((path + '/log.txt'), mode='w')
 log_file.write('best_score of T: ' + str(gcv_t.best_score_) + '\n')
 log_file.write('best_params of T: ' + str(gcv_t.best_params_) + '\n')
-log_file.write('best_score of F: ' + str(gcv_f.best_score_) + '\n')
-log_file.write('best_params of F: ' + str(gcv_f.best_params_) + '\n')
 
 # clf_t = GradientBoostingRegressor(loss='huber', max_depth=5, max_features=10, n_estimators=100)
 # clf_f = GradientBoostingRegressor(loss='huber', max_depth=6, max_features=8, n_estimators=120)
