@@ -118,8 +118,9 @@ clf_t.fit(feature_train_t, result_train_t)
 clf_f.fit(feature_train_f, result_train_f)
 predict_result_t = clf_t.predict(feature_test_t)
 predict_result_f = clf_f.predict(feature_test_f)
+# print(feature_test_f)
 
-log_file = open((path + '/log.txt'), mode='w')
+log_file = open((path + '/log2.txt'), mode='w')
 log_file.write('explained_variance_score of T: ' +
                str(explained_variance_score(predict_result_t, result_test_t)) +
                '\n')
