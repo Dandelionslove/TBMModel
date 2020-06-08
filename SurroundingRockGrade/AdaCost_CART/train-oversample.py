@@ -11,7 +11,7 @@ from sklearn.ensemble import AdaBoostClassifier
 from imblearn.over_sampling import RandomOverSampler,SMOTE, ADASYN
 
 path = os.path.abspath(os.path.dirname(sys.argv[0]))
-df = pandas.read_csv(r"C:\Users\chend\Desktop\adaCostPreData.csv", encoding='utf-8', index_col=False)
+df = pandas.read_csv(path + '/adaCostPreData.csv', encoding='utf-8', index_col=False)
 X = df[['刀盘运行时间均值', '撑靴压力均值', '刀盘转速均值', '撑靴泵压力均值', '左撑靴俯仰角均值', '控制泵压力均值', '右撑靴俯仰角均值',
         '左撑靴滚动角均值', '左撑靴油缸行程检测均值', '右撑靴滚动角均值', '右撑靴油缸行程检测均值']].values
 y = df['围岩等级'].values
