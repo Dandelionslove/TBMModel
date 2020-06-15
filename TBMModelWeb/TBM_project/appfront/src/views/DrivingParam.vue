@@ -244,9 +244,8 @@ export default {
 			},
 			imgs: [
 				{ url: require("../assets/rf1.png"), link: "/content1" },
-				{ url: require("../assets/rf2.png"), link: "/content2" },
-				{ url: require("../assets/logo.png"), link: "/content3" }
-			],
+				{ url: require("../assets/rf2.png"), link: "/content2" }
+							],
 			options: {
 				text: {
 					color: '#FFFFFF',

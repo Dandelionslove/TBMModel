@@ -236,9 +236,8 @@ export default {
 			},
 			imgs: [
 				{ url: require("../assets/adacost1.png"), link: "/content1" },
-				{ url: require("../assets/adacost2.png"), link: "/content2" },
-				{ url: require("../assets/logo.png"), link: "/content3" }
-			],
+				{ url: require("../assets/adacost2.png"), link: "/content2" }
+							],
 			modelTestResult: [],
 			options: {
 				text: {
