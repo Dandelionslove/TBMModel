@@ -365,8 +365,8 @@ export default {
 					var temp = [];
 					this.modelTestRandomShowingData.forEach((value, index) => {
 						temp[index] = value;
-						temp[index]["F_predict"] = resultList[index][0];
-						temp[index]["T_predict"] = resultList[index][1];
+						temp[index]["F_predict"] = resultList[index][1];
+						temp[index]["T_predict"] = resultList[index][0];
 					});
 									
 					this.$message({
